@@ -2002,24 +2002,18 @@
   .scanner-modal {
     display: none; position: fixed; inset: 0; z-index: 2000;
     background: #000; flex-direction: column;
-    align-items: center; justify-content: center;
   }
   .scanner-modal.open { display: flex; }
-  .scanner-modal video {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover;
-  }
   .scanner-modal-ui {
-    position: relative; z-index: 10;
     display: flex; flex-direction: column;
-    align-items: center; width: 100%; height: 100%;
-    pointer-events: none;
+    width: 100%; height: 100%;
   }
   /* Top bar */
   .scanner-modal-top {
     width: 100%; display: flex; align-items: center; justify-content: space-between;
-    padding: 3rem 1.5rem 1rem; pointer-events: all;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+    padding: env(safe-area-inset-top, 1rem) 1.5rem 0.8rem;
+    padding-top: max(env(safe-area-inset-top, 0px), 1.2rem);
+    background: rgba(0,0,0,0.85); z-index: 10; flex-shrink: 0;
   }
   .scanner-modal-title {
     font-family: 'Barlow Condensed', sans-serif;
@@ -2027,67 +2021,57 @@
     color: #fff; text-transform: uppercase;
   }
   .scanner-modal-close {
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
     color: #fff; border-radius: 8px; padding: 0.4rem 1rem;
     font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem;
-    letter-spacing: 1px; cursor: pointer; pointer-events: all;
+    letter-spacing: 1px; cursor: pointer;
   }
-  /* Viewfinder frame */
-  .scanner-viewfinder {
-    flex: 1; display: flex; align-items: center; justify-content: center;
+  /* html5-qrcode region fills the middle */
+  #scannerQrRegion {
+    flex: 1; overflow: hidden; position: relative;
+    background: #000;
   }
-  .scanner-vf-frame {
-    width: min(72vw, 320px); height: min(45vw, 200px);
-    position: relative; border-radius: 10px;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+  #scannerQrRegion video {
+    width: 100% !important; height: 100% !important;
+    object-fit: cover !important;
   }
-  .scanner-vf-frame::before, .scanner-vf-frame::after,
-  .scanner-vf-inner::before, .scanner-vf-inner::after {
-    content: ''; position: absolute; width: 22px; height: 22px;
-    border-color: var(--accent); border-style: solid;
+  #scannerQrRegion canvas { display: none !important; }
+  /* Override html5-qrcode UI */
+  #scannerQrRegion img[alt="Info icon"],
+  #scannerQrRegion #html5-qrcode-anchor-scan-type-change { display: none !important; }
+  #scannerQrRegion #html5qr-code-full-region__scan_region {
+    border: none !important;
   }
-  .scanner-vf-frame::before  { top:-2px;    left:-2px;  border-width: 3px 0 0 3px; border-radius: 7px 0 0 0; }
-  .scanner-vf-frame::after   { top:-2px;    right:-2px; border-width: 3px 3px 0 0; border-radius: 0 7px 0 0; }
-  .scanner-vf-inner::before  { bottom:-2px; left:-2px;  border-width: 0 0 3px 3px; border-radius: 0 0 0 7px; }
-  .scanner-vf-inner::after   { bottom:-2px; right:-2px; border-width: 0 3px 3px 0; border-radius: 0 0 7px 0; }
-  .scanner-vf-laser {
-    position: absolute; left: 0; right: 0; height: 2px; top: 50%;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    box-shadow: 0 0 10px var(--accent);
-    animation: laserMove 2s ease-in-out infinite;
-  }
-  @keyframes laserMove { 0%{top:8%} 50%{top:88%} 100%{top:8%} }
-  .scanner-vf-hint {
-    position: absolute; bottom: -2rem; left: 50%; transform: translateX(-50%);
-    white-space: nowrap; font-size: 0.75rem; color: rgba(255,255,255,0.6);
-    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px;
-  }
-  /* Bottom bar - manual + shutter */
+  #scannerQrRegion #html5qr-code-full-region__dashboard { display: none !important; }
+  /* Bottom bar */
   .scanner-modal-bottom {
-    width: 100%; padding: 1rem 1.5rem 3rem;
-    display: flex; flex-direction: column; align-items: center; gap: 1rem;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    pointer-events: all;
+    width: 100%; padding: 0.8rem 1.5rem 2rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+    background: rgba(0,0,0,0.85); flex-shrink: 0;
   }
-  /* Hidden file input, triggered by shutter button */
   #scanFileInput { display: none; }
   .scanner-shutter {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    border: 3px solid rgba(255,255,255,0.5);
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 3px solid rgba(255,255,255,0.4);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s; position: relative;
+    transition: all 0.15s;
   }
-  .scanner-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
-  .scanner-shutter-inner {
-    width: 46px; height: 46px; border-radius: 50%; background: #fff;
-  }
-  .scanner-manual-row {
-    display: flex; gap: 0.5rem; width: 100%; max-width: 320px;
-  }
+  .scanner-shutter:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+  .scanner-shutter-inner { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+  .scanner-manual-row { display: flex; gap: 0.5rem; width: 100%; max-width: 320px; }
   .scanner-manual-input {
-    flex: 1; background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+    flex: 1; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    padding: 0.55rem 0.9rem; color: #fff; font-size: 0.9rem; outline: none;
+    font-family: 'Barlow', sans-serif;
+  }
+  .scanner-manual-input::placeholder { color: rgba(255,255,255,0.35); }
+  .scanner-manual-go {
+    background: var(--accent); color: var(--navy); border: none;
+    border-radius: 8px; padding: 0.55rem 1rem; font-weight: 800;
+    font-family: 'Barlow Condensed', sans-serif; cursor: pointer; font-size: 0.9rem;
+  }
     padding: 0.55rem 0.9rem; color: #fff; font-size: 0.9rem; outline: none;
     font-family: 'Barlow', sans-serif;
   }
@@ -5089,103 +5073,135 @@ function switchDeratTab(tab, btn) {
 
 // ===== BARCODE SCANNER =====
 var scanProduct = null;
-var scannerDecoding = false;
+var scannerStream = null;
 var scannerRafId = null;
-var scannerLiveStream = null;
-var scannerBMFReader = null;
-var nativeDetector = null;
+var scannerActive = false;
+var zbarModule = null;
 
 function aprireScannerModal() {
   document.getElementById('scannerModal').classList.add('open');
   document.body.style.overflow = 'hidden';
-  scannerDecoding = false;
-  avviaLiveScanner();
+  scannerActive = true;
+  avviaScanner();
 }
 
 function chiudiScannerModal() {
+  scannerActive = false;
+  clearTimeout(scannerRafId);
+  fermaStream();
   document.getElementById('scannerModal').classList.remove('open');
   document.body.style.overflow = '';
-  fermaLiveScanner();
 }
 
-function avviaLiveScanner() {
+function fermaStream() {
+  if (scannerStream) {
+    scannerStream.getTracks().forEach(function(t){ t.stop(); });
+    scannerStream = null;
+  }
   var v = document.getElementById('scannerModalVideo');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .catch(function() { return navigator.mediaDevices.getUserMedia({ video: true }); })
-    .then(function(stream) {
-      scannerLiveStream = stream;
-      v.srcObject = stream;
-      v.play().catch(function(){});
-      if (window.BarcodeDetector) {
-        BarcodeDetector.getSupportedFormats().then(function(fmts) {
-          nativeDetector = new BarcodeDetector({ formats: fmts });
-          avviaLoopNativo(v);
-        }).catch(function() { avviaZXingBMF(stream, v); });
-      } else {
-        avviaZXingBMF(stream, v);
-      }
-    })
-    .catch(function() {});
+  if (v) { try { v.srcObject = null; } catch(e){} }
 }
 
+function avviaScanner() {
+  if (!navigator.mediaDevices) return;
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+  }).catch(function(){
+    return navigator.mediaDevices.getUserMedia({ video: true });
+  }).then(function(stream) {
+    scannerStream = stream;
+    var v = document.getElementById('scannerModalVideo');
+    v.srcObject = stream;
+    v.play().catch(function(){});
+    v.onloadedmetadata = function() { avviaLoop(v); };
+  }).catch(function(e){
+    document.getElementById('scanHint').textContent = 'Fotocamera non disponibile. Usa il pulsante ⊙ per scattare foto o inserisci il codice.';
+  });
+}
+
+function avviaLoop(video) {
+  // Prefer native BarcodeDetector (Chrome/Edge/Android) — most accurate
+  if (window.BarcodeDetector) {
+    avviaLoopNativo(video);
+    return;
+  }
+  // Fallback: zbar-wasm (WebAssembly port of the professional ZBar library)
+  caricaZbar(function() { avviaLoopZbar(video); });
+}
+
+// ---- Native BarcodeDetector (Chrome 88+, Edge, Android) ----
 function avviaLoopNativo(video) {
+  var det = new BarcodeDetector({
+    formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','codabar','itf']
+  });
   function tick() {
-    if (scannerDecoding || !document.getElementById('scannerModal').classList.contains('open')) return;
-    nativeDetector.detect(video).then(function(barcodes) {
-      if (scannerDecoding) return;
-      for (var i = 0; i < barcodes.length; i++) {
-        var code = barcodes[i].rawValue;
-        if (code && /^[0-9]{4,14}$/.test(code)) {
-          scannerDecoding = true;
-          chiudiScannerModal();
-          cercaBarcodeScan(code);
-          return;
+    if (!scannerActive) return;
+    det.detect(video).then(function(results) {
+      if (!scannerActive) return;
+      for (var i = 0; i < results.length; i++) {
+        var v = results[i].rawValue;
+        if (v && /^[0-9]{4,14}$/.test(v)) {
+          onCodeFound(v); return;
         }
       }
-      scannerRafId = setTimeout(tick, 200);
+      scannerRafId = setTimeout(tick, 150);
     }).catch(function() {
-      if (!scannerDecoding) scannerRafId = setTimeout(tick, 300);
+      if (scannerActive) scannerRafId = setTimeout(tick, 300);
     });
   }
   tick();
 }
 
-function avviaZXingBMF(stream, video) {
-  if (!window.ZXing) {
-    loadScanScript('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', function() {
-      avviaZXingBMF(stream, video);
-    });
-    return;
-  }
-  try {
-    var hints = new Map();
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    scannerBMFReader = new ZXing.BrowserMultiFormatReader(hints, 300);
-    scannerBMFReader.decodeFromStream(stream, video, function(result, err) {
-      if (scannerDecoding) return;
-      if (result) {
-        var code = result.getText();
-        if (code && /^[0-9]{4,14}$/.test(code)) {
-          scannerDecoding = true;
-          try { scannerBMFReader.reset(); } catch(e2) {}
-          chiudiScannerModal();
-          cercaBarcodeScan(code);
+// ---- ZBar WebAssembly (Firefox, Safari, iOS fallback) ----
+function caricaZbar(cb) {
+  if (zbarModule) { cb(); return; }
+  // zbar-wasm: port of professional ZBar C library to WebAssembly
+  var s = document.createElement('script');
+  s.type = 'module';
+  s.textContent = 'import { getDefaultScanner } from "https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.9.15/dist/index.js";\n' +
+    'getDefaultScanner().then(function(sc){ window._zbarScanner = sc; window._zbarReady = true; });';
+  document.head.appendChild(s);
+  var wait = setInterval(function() {
+    if (window._zbarReady) { clearInterval(wait); cb(); }
+  }, 100);
+}
+
+function avviaLoopZbar(video) {
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  function tick() {
+    if (!scannerActive) return;
+    if (video.readyState >= 2 && video.videoWidth > 0) {
+      var w = video.videoWidth, h = video.videoHeight;
+      canvas.width = w; canvas.height = h;
+      ctx.drawImage(video, 0, 0, w, h);
+      var imgData = ctx.getImageData(0, 0, w, h);
+      Promise.resolve(window._zbarScanner.scanRGBAImage(imgData.data, w, h)).then(function(results) {
+        if (!scannerActive) return;
+        for (var i = 0; i < results.length; i++) {
+          var v = results[i].decode();
+          if (v && /^[0-9]{4,14}$/.test(v)) { onCodeFound(v); return; }
         }
-      }
-    });
-  } catch(e) {}
+        scannerRafId = setTimeout(tick, 150);
+      }).catch(function() {
+        if (scannerActive) scannerRafId = setTimeout(tick, 300);
+      });
+    } else {
+      scannerRafId = setTimeout(tick, 200);
+    }
+  }
+  tick();
 }
 
-function fermaLiveScanner() {
+function onCodeFound(code) {
+  scannerActive = false;
   clearTimeout(scannerRafId);
-  scannerDecoding = false;
-  if (scannerBMFReader) { try { scannerBMFReader.reset(); } catch(e) {} scannerBMFReader = null; }
-  if (scannerLiveStream) { scannerLiveStream.getTracks().forEach(function(t){ t.stop(); }); scannerLiveStream = null; }
-  var v = document.getElementById('scannerModalVideo');
-  if (v) { try { v.pause(); v.srcObject = null; } catch(e) {} }
+  fermaStream();
+  chiudiScannerModal();
+  cercaBarcodeScan(code);
 }
 
+// ---- File input (iOS shutter) ----
 function onScanFileSelected(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
@@ -5194,61 +5210,48 @@ function onScanFileSelected(input) {
   document.getElementById('scanLoading').classList.add('visible');
   document.getElementById('scanResult').classList.remove('visible');
   document.getElementById('scanError').classList.remove('visible');
+
   var fr = new FileReader();
   fr.onload = function(e) {
     var img = new Image();
-    img.onload = function() { decodeFromImage(img); };
+    img.onload = function() {
+      if (window.BarcodeDetector) {
+        new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] })
+          .detect(img).then(function(results) {
+            if (results.length > 0) {
+              cercaBarcodeScan(results[0].rawValue);
+            } else {
+              decodeImageZbar(img);
+            }
+          }).catch(function() { decodeImageZbar(img); });
+      } else {
+        decodeImageZbar(img);
+      }
+    };
     img.src = e.target.result;
   };
   fr.readAsDataURL(file);
 }
 
-function decodeFromImage(img) {
-  if (!window.ZXing) {
-    loadScanScript('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', function() { decodeFromImage(img); });
-    return;
-  }
-  var scales = [1, 0.6, 0.4, 1.4];
-  var canvas = document.createElement('canvas');
-  var hints = new Map();
-  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-  var reader;
-  try { reader = new ZXing.MultiFormatReader(hints); } catch(e) {
-    scanShowError('Motore non pronto. Riprova.'); return;
-  }
-  for (var si = 0; si < scales.length; si++) {
-    var sc = scales[si];
-    canvas.width  = Math.round(img.naturalWidth  * sc);
-    canvas.height = Math.round(img.naturalHeight * sc);
+function decodeImageZbar(img) {
+  function run() {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
     var ctx = canvas.getContext('2d');
-    ctx.filter = 'contrast(1.8) grayscale(1)';
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    ctx.filter = 'none';
-    try {
-      var d = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      var lum = new ZXing.RGBLuminanceSource(d.data, canvas.width, canvas.height);
-      var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
-      var res = reader.decode(bmp);
-      if (res) { cercaBarcodeScan(res.getText()); return; }
-    } catch(e) {}
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    try {
-      var d2 = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      var lum2 = new ZXing.RGBLuminanceSource(d2.data, canvas.width, canvas.height);
-      var bmp2 = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum2));
-      var res2 = reader.decode(bmp2);
-      if (res2) { cercaBarcodeScan(res2.getText()); return; }
-    } catch(e) {}
+    ctx.drawImage(img, 0, 0);
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    Promise.resolve(window._zbarScanner.scanRGBAImage(imgData.data, canvas.width, canvas.height)).then(function(results) {
+      if (results.length > 0) {
+        cercaBarcodeScan(results[0].decode());
+      } else {
+        scanShowError('Codice non rilevato. Avvicina il telefono, assicurati di avere buona luce e riprova.');
+      }
+    }).catch(function() {
+      scanShowError('Errore lettura immagine. Riprova.');
+    });
   }
-  scanShowError('Codice non rilevato. Tieni il telefono fermo, buona luce, barcode ben centrato.');
-}
-
-function loadScanScript(src, cb) {
-  if (document.querySelector('script[src="' + src + '"]')) { if (window.ZXing) cb(); return; }
-  var s = document.createElement('script');
-  s.src = src; s.onload = cb;
-  s.onerror = function() { scanShowError('Errore caricamento motore. Verifica connessione.'); };
-  document.head.appendChild(s);
+  if (window._zbarReady) { run(); return; }
+  caricaZbar(run);
 }
 
 async function cercaBarcodeScan(code) {
@@ -5263,7 +5266,7 @@ async function cercaBarcodeScan(code) {
     if (data.status === 1 && data.product) {
       scanShowProduct(code, data.product);
     } else {
-      scanShowError('Prodotto ' + code + ' non trovato nel database Open Food Facts.');
+      scanShowError('Prodotto ' + code + ' non trovato in Open Food Facts.');
     }
   } catch(e) {
     document.getElementById('scanLoading').classList.remove('visible');
@@ -5276,10 +5279,10 @@ function scanShowProduct(code, p) {
   var imgEl = document.getElementById('scanResultImg');
   var imgSrc = p.image_url || p.image_front_url;
   if (imgSrc) {
-    var imgTag = document.createElement('img');
-    imgTag.src = imgSrc; imgTag.className = 'scan-result-img'; imgTag.alt = '';
-    imgTag.onerror = function(){ this.style.display = 'none'; };
-    imgEl.innerHTML = ''; imgEl.appendChild(imgTag);
+    var t = document.createElement('img');
+    t.src = imgSrc; t.className = 'scan-result-img'; t.alt = '';
+    t.onerror = function(){ this.style.display='none'; };
+    imgEl.innerHTML = ''; imgEl.appendChild(t);
   } else {
     imgEl.innerHTML = '<div class="scan-result-placeholder">📦</div>';
   }
@@ -5295,10 +5298,10 @@ function scanShowProduct(code, p) {
   if (p.allergens)        campi.push({ k:'Allergeni',   v:p.allergens });
   var nut = p.nutriments;
   if (nut) {
-    if (nut['energy-kcal_100g'] != null) campi.push({ k:'Energia/100g', v:Math.round(nut['energy-kcal_100g'])+' kcal' });
-    if (nut['proteins_100g']    != null) campi.push({ k:'Proteine',     v:nut['proteins_100g']+' g' });
-    if (nut['carbohydrates_100g'] != null) campi.push({ k:'Carbo.',     v:nut['carbohydrates_100g']+' g' });
-    if (nut['fat_100g']         != null) campi.push({ k:'Grassi',       v:nut['fat_100g']+' g' });
+    if (nut['energy-kcal_100g']!=null) campi.push({ k:'Energia/100g', v:Math.round(nut['energy-kcal_100g'])+' kcal' });
+    if (nut['proteins_100g']!=null)    campi.push({ k:'Proteine',     v:nut['proteins_100g']+' g' });
+    if (nut['carbohydrates_100g']!=null) campi.push({ k:'Carbo.',     v:nut['carbohydrates_100g']+' g' });
+    if (nut['fat_100g']!=null)         campi.push({ k:'Grassi',       v:nut['fat_100g']+' g' });
   }
   document.getElementById('scanResultGrid').innerHTML = campi.map(function(f){
     return '<div class="scan-result-field"><strong>'+f.k+'</strong><span>'+(f.v||'—')+'</span></div>';
@@ -5477,27 +5480,46 @@ if(isLoggedIn()) initHero();
 
 <!-- SCANNER MODAL -->
 <div class="scanner-modal" id="scannerModal">
-  <video id="scannerModalVideo" autoplay playsinline muted></video>
-  <div class="scanner-modal-ui">
-    <div class="scanner-modal-top">
+  <!-- Live video feed fills entire screen -->
+  <video id="scannerModalVideo" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+
+  <!-- Overlay UI on top of video -->
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;pointer-events:none;">
+
+    <!-- Top bar -->
+    <div class="scanner-modal-top" style="pointer-events:all;">
       <div class="scanner-modal-title">▦ SCANSIONA BARCODE</div>
       <button class="scanner-modal-close" onclick="chiudiScannerModal()">✕ CHIUDI</button>
     </div>
-    <div class="scanner-viewfinder">
-      <div class="scanner-vf-frame">
-        <div class="scanner-vf-inner"></div>
-        <div class="scanner-vf-laser"></div>
-        <div class="scanner-vf-hint">CENTRA IL BARCODE NEL RIQUADRO</div>
+
+    <!-- Viewfinder -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:min(75vw,300px);height:min(47vw,190px);">
+        <!-- Dark overlay cutout -->
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);pointer-events:none;"></div>
+        <!-- Frame corners -->
+        <div style="position:absolute;inset:-2px;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none;"></div>
+        <div style="position:absolute;top:-2px;left:-2px;width:24px;height:24px;border-top:3px solid #e8a020;border-left:3px solid #e8a020;border-radius:6px 0 0 0;"></div>
+        <div style="position:absolute;top:-2px;right:-2px;width:24px;height:24px;border-top:3px solid #e8a020;border-right:3px solid #e8a020;border-radius:0 6px 0 0;"></div>
+        <div style="position:absolute;bottom:-2px;left:-2px;width:24px;height:24px;border-bottom:3px solid #e8a020;border-left:3px solid #e8a020;border-radius:0 0 0 6px;"></div>
+        <div style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-bottom:3px solid #e8a020;border-right:3px solid #e8a020;border-radius:0 0 6px 0;"></div>
+        <!-- Laser -->
+        <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#e8a020,transparent);box-shadow:0 0 8px #e8a020;animation:laserMove 1.8s ease-in-out infinite;"></div>
       </div>
     </div>
-    <div class="scanner-modal-bottom">
+
+    <!-- Bottom bar -->
+    <div class="scanner-modal-bottom" style="pointer-events:all;">
+      <div id="scanHint" style="font-size:0.72rem;color:rgba(255,255,255,0.55);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-align:center;">
+        CENTRA IL BARCODE NEL RIQUADRO
+      </div>
       <label class="scanner-shutter" for="scanFileInput" title="Scatta foto">
         <div class="scanner-shutter-inner"></div>
       </label>
       <input type="file" id="scanFileInput" accept="image/*" capture="environment" onchange="onScanFileSelected(this)">
       <div class="scanner-manual-row">
         <input class="scanner-manual-input" type="text" id="scanManualInput"
-          placeholder="Inserisci codice manualmente..."
+          placeholder="Inserisci codice a mano..."
           inputmode="numeric" maxlength="14"
           onkeydown="if(event.key==='Enter'){chiudiScannerModal();cercaBarcodeScan(this.value.trim())}">
         <button class="scanner-manual-go" onclick="chiudiScannerModal();cercaBarcodeScan(document.getElementById('scanManualInput').value.trim())">→</button>
