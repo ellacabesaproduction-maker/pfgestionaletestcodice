@@ -5080,28 +5080,16 @@ function switchDeratTab(tab, btn) {
 
 
 // ═══════════════════════════════════════════════════════════════
-//  BARCODE SCANNER
-//  Strategia:
-//    1) Apre modal a schermo intero con video live
-//    2) Su Chrome/Edge/Android usa BarcodeDetector nativo (velocissimo)
-//    3) Su Safari/Firefox usa html5-qrcode (libreria più affidabile)
-//    4) Il pulsante otturatore (input file) funziona su TUTTI incluso iOS
-//    5) Campo manuale sempre disponibile
+//  BARCODE SCANNER - Multi-frame aggressive decoder
 // ═══════════════════════════════════════════════════════════════
 
 var _scan = {
-  product:  null,
-  stream:   null,
-  timer:    null,
-  active:   false,
-  detector: null,
-  h5reader: null
+  product: null, stream: null, timer: null,
+  active: false, detector: null, worker: null
 };
 
-// ── Apri / Chiudi ────────────────────────────────────────────────
 function scanApri() {
-  var m = document.getElementById('scanModal');
-  m.classList.add('open');
+  document.getElementById('scanModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   _scan.active = true;
   _scanAvvia();
@@ -5111,141 +5099,190 @@ function scanChiudi() {
   _scan.active = false;
   clearTimeout(_scan.timer);
   _scanFermaStream();
-  if (_scan.h5reader) { try { _scan.h5reader.stop(); } catch(e){} _scan.h5reader = null; }
   document.getElementById('scanModal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 function _scanFermaStream() {
-  if (_scan.stream) {
-    _scan.stream.getTracks().forEach(function(t){ t.stop(); });
-    _scan.stream = null;
-  }
+  if (_scan.stream) { _scan.stream.getTracks().forEach(function(t){ t.stop(); }); _scan.stream = null; }
   var v = document.getElementById('scanVideo');
   if (v) { try { v.srcObject = null; } catch(e){} }
 }
 
-// ── Avvia fotocamera ─────────────────────────────────────────────
 function _scanAvvia() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    _scanStatus('Usa il codice manuale sotto ↓');
-    return;
+    _scanStatus('Usa il codice manuale ↓'); return;
   }
-
-  var constraints = {
-    video: {
-      facingMode: { ideal: 'environment' },
-      width:  { ideal: 1280 },
-      height: { ideal: 720 }
-    }
-  };
-
-  navigator.mediaDevices.getUserMedia(constraints)
-    .catch(function() {
-      return navigator.mediaDevices.getUserMedia({ video: true });
-    })
-    .then(function(stream) {
-      if (!_scan.active) { stream.getTracks().forEach(function(t){ t.stop(); }); return; }
-      _scan.stream = stream;
-      var v = document.getElementById('scanVideo');
-      v.srcObject = stream;
-      v.play().catch(function(){});
-      v.addEventListener('loadedmetadata', function onMeta() {
-        v.removeEventListener('loadedmetadata', onMeta);
-        _scanScegliMotore(stream, v);
-      }, { once: true });
-    })
-    .catch(function() {
-      _scanStatus('Fotocamera non accessibile. Usa il codice manuale ↓');
-    });
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+  }).catch(function(){
+    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+  }).catch(function(){
+    return navigator.mediaDevices.getUserMedia({ video: true });
+  }).then(function(stream) {
+    if (!_scan.active) { stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+    _scan.stream = stream;
+    var v = document.getElementById('scanVideo');
+    v.srcObject = stream;
+    v.play().catch(function(){});
+    v.addEventListener('loadedmetadata', function() { _scanScegliMotore(v); }, { once: true });
+  }).catch(function() {
+    _scanStatus('Fotocamera non accessibile. Usa il codice manuale ↓');
+  });
 }
 
-// ── Sceglie il motore di decodifica ──────────────────────────────
-function _scanScegliMotore(stream, video) {
-  // BarcodeDetector: nativo Chrome 88+, Edge, Samsung Browser, Android WebView
+function _scanScegliMotore(video) {
   if (window.BarcodeDetector) {
-    BarcodeDetector.getSupportedFormats().then(function(fmts) {
-      _scan.detector = new BarcodeDetector({ formats: fmts });
-      _scanStatus('Punta il barcode...');
-      _scanLoopNativo(video);
-    }).catch(function() {
-      _scanCaricaH5(stream, video);
+    _scan.detector = new BarcodeDetector({
+      formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','codabar','itf','qr_code']
     });
+    _scanStatus('Punta il barcode...');
+    _scanLoopNativo(video);
   } else {
-    // Safari, Firefox, iOS → html5-qrcode
-    _scanCaricaH5(stream, video);
+    _scanCaricaZXing(video);
   }
 }
 
-// ── Motore 1: BarcodeDetector nativo ─────────────────────────────
+// ── Motore 1: BarcodeDetector nativo (Chrome/Edge/Android) ───────
 function _scanLoopNativo(video) {
   if (!_scan.active) return;
   _scan.detector.detect(video)
-    .then(function(barcodes) {
+    .then(function(res) {
       if (!_scan.active) return;
-      for (var i = 0; i < barcodes.length; i++) {
-        var code = barcodes[i].rawValue;
-        if (code && code.length >= 4) {
-          _scanTrovato(code); return;
-        }
-      }
-      _scan.timer = setTimeout(function() { _scanLoopNativo(video); }, 120);
+      if (res.length > 0) { _scanTrovato(res[0].rawValue); return; }
+      _scan.timer = setTimeout(function(){ _scanLoopNativo(video); }, 80);
     })
-    .catch(function() {
-      if (_scan.active) _scan.timer = setTimeout(function() { _scanLoopNativo(video); }, 200);
-    });
+    .catch(function(){ if (_scan.active) _scan.timer = setTimeout(function(){ _scanLoopNativo(video); }, 150); });
 }
 
-// ── Motore 2: html5-qrcode (Safari/Firefox/iOS) ──────────────────
-function _scanCaricaH5(stream, video) {
+// ── Motore 2: ZXing aggressivo multi-variante (Safari/Firefox) ───
+function _scanCaricaZXing(video) {
   _scanStatus('Caricamento motore scanner...');
-  if (window.Html5Qrcode) { _scanAvviaH5(stream, video); return; }
+  if (window.ZXing) { _scanLoopZXing(video); return; }
   var s = document.createElement('script');
-  s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-  s.onload  = function() { _scanAvviaH5(stream, video); };
-  s.onerror = function() { _scanStatus('Motore non disponibile. Usa il codice manuale ↓'); };
+  s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+  s.onload = function() { _scanLoopZXing(video); };
+  s.onerror = function() { _scanCaricaH5Fallback(video); };
   document.head.appendChild(s);
 }
 
-function _scanAvviaH5(stream, video) {
+function _scanLoopZXing(video) {
   if (!_scan.active) return;
-  _scanStatus('Punta il barcode...');
-  try {
-    // html5-qrcode mounted on the already-running video element
-    // We feed it the existing stream so no double camera request (crucial on iOS)
-    var reader = new Html5Qrcode('scanVideo', { verbose: false });
-    _scan.h5reader = reader;
-
-    // Decode frame by frame using the existing stream
-    var canvas = document.createElement('canvas');
-    var ctx    = canvas.getContext('2d', { willReadFrequently: true });
-
-    function tick() {
-      if (!_scan.active) return;
-      if (video.readyState < 2 || video.videoWidth === 0) {
-        _scan.timer = setTimeout(tick, 150); return;
-      }
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-
-      // Create blob and let html5-qrcode scan it
-      canvas.toBlob(function(blob) {
-        if (!blob || !_scan.active) return;
-        var file = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
-        reader.scanFile(file, false)
-          .then(function(code) {
-            if (_scan.active && code) { _scanTrovato(code); }
-          })
-          .catch(function() {
-            if (_scan.active) _scan.timer = setTimeout(tick, 150);
-          });
-      }, 'image/jpeg', 0.85);
-    }
-    tick();
-  } catch(e) {
-    _scanStatus('Errore avvio. Usa il codice manuale ↓');
+  if (video.readyState < 2 || video.videoWidth === 0) {
+    _scan.timer = setTimeout(function(){ _scanLoopZXing(video); }, 150); return;
   }
+  _scanStatus('Punta il barcode...');
+
+  var W = video.videoWidth, H = video.videoHeight;
+  var hints = new Map();
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.UPC_A,  ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39
+  ]);
+  var reader;
+  try { reader = new ZXing.MultiFormatReader(hints); }
+  catch(e) { _scanCaricaH5Fallback(video); return; }
+
+  // Canvases riutilizzati per performance
+  var cvMain = document.createElement('canvas');
+  var cvCrop = document.createElement('canvas');
+  var cvSmall= document.createElement('canvas');
+  var cvHiCon= document.createElement('canvas');
+  var cvRot  = document.createElement('canvas');
+  var ctxMain  = cvMain.getContext('2d', { willReadFrequently: true });
+  var ctxCrop  = cvCrop.getContext('2d', { willReadFrequently: true });
+  var ctxSmall = cvSmall.getContext('2d', { willReadFrequently: true });
+  var ctxHiCon = cvHiCon.getContext('2d', { willReadFrequently: true });
+  var ctxRot   = cvRot.getContext('2d', { willReadFrequently: true });
+
+  function decodeCanvas(cv, ctx) {
+    try {
+      var d = ctx.getImageData(0, 0, cv.width, cv.height);
+      var lum = new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height);
+      var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+      var res = reader.decode(bmp);
+      return res && res.getText ? res.getText() : null;
+    } catch(e) { return null; }
+  }
+
+  function tick() {
+    if (!_scan.active) return;
+
+    // 1. Frame originale full res
+    cvMain.width = W; cvMain.height = H;
+    ctxMain.drawImage(video, 0, 0);
+    var code = decodeCanvas(cvMain, ctxMain);
+    if (code) { _scanTrovato(code); return; }
+
+    // 2. Ritaglio centrale (zona mirino) — elimina rumore bordi
+    var cx = Math.round(W * 0.1), cy = Math.round(H * 0.25);
+    var cw = Math.round(W * 0.8), ch = Math.round(H * 0.5);
+    cvCrop.width = cw; cvCrop.height = ch;
+    ctxCrop.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+    code = decodeCanvas(cvCrop, ctxCrop);
+    if (code) { _scanTrovato(code); return; }
+
+    // 3. Scala ridotta 50% — barcode lontani diventano proporzionalmente più grandi
+    cvSmall.width = Math.round(W * 0.5); cvSmall.height = Math.round(H * 0.5);
+    ctxSmall.drawImage(video, 0, 0, cvSmall.width, cvSmall.height);
+    code = decodeCanvas(cvSmall, ctxSmall);
+    if (code) { _scanTrovato(code); return; }
+
+    // 4. Alto contrasto — supera riflessi e packaging lucido
+    cvHiCon.width = W; cvHiCon.height = H;
+    ctxHiCon.filter = 'contrast(2.5) grayscale(1) brightness(1.1)';
+    ctxHiCon.drawImage(video, 0, 0);
+    ctxHiCon.filter = 'none';
+    code = decodeCanvas(cvHiCon, ctxHiCon);
+    if (code) { _scanTrovato(code); return; }
+
+    // 5. Alto contrasto sul ritaglio centrale
+    cvRot.width = cw; cvRot.height = ch;
+    ctxRot.filter = 'contrast(2.5) grayscale(1)';
+    ctxRot.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+    ctxRot.filter = 'none';
+    code = decodeCanvas(cvRot, ctxRot);
+    if (code) { _scanTrovato(code); return; }
+
+    _scan.timer = setTimeout(tick, 100);
+  }
+  tick();
+}
+
+// ── Fallback finale: html5-qrcode ────────────────────────────────
+function _scanCaricaH5Fallback(video) {
+  _scanStatus('Caricamento fallback...');
+  if (window.Html5Qrcode) { _scanLoopH5(video); return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+  s.onload = function() { _scanLoopH5(video); };
+  s.onerror = function() { _scanStatus('Scanner non disponibile. Usa il codice manuale ↓'); };
+  document.head.appendChild(s);
+}
+
+function _scanLoopH5(video) {
+  _scanStatus('Punta il barcode...');
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  function tick() {
+    if (!_scan.active) return;
+    if (video.readyState < 2 || !video.videoWidth) { _scan.timer = setTimeout(tick, 200); return; }
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(function(blob) {
+      if (!blob || !_scan.active) return;
+      var f = new File([blob], 'f.jpg', { type: 'image/jpeg' });
+      var tmp = document.createElement('div');
+      tmp.id = 'h5tmp_' + Date.now(); tmp.style.display = 'none';
+      document.body.appendChild(tmp);
+      new Html5Qrcode(tmp.id, { verbose: false }).scanFile(f, false)
+        .then(function(code) { tmp.remove(); if (_scan.active) _scanTrovato(code); })
+        .catch(function() { tmp.remove(); if (_scan.active) _scan.timer = setTimeout(tick, 150); });
+    }, 'image/jpeg', 0.9);
+  }
+  tick();
 }
 
 // ── Codice trovato ────────────────────────────────────────────────
@@ -5257,7 +5294,7 @@ function _scanTrovato(code) {
   scanCerca(code);
 }
 
-// ── Pulsante otturatore: file input (sempre funziona su iOS) ──────
+// ── File input (pulsante otturatore) ─────────────────────────────
 function scanFileSelected(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
@@ -5267,45 +5304,86 @@ function scanFileSelected(input) {
   document.getElementById('scanResult').classList.remove('visible');
   document.getElementById('scanError').classList.remove('visible');
 
-  // Prova BarcodeDetector sull'immagine (Chrome/Edge)
-  if (window.BarcodeDetector) {
-    var img = new Image();
-    img.onload = function() {
-      new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code','codabar','itf'] })
-        .detect(img)
-        .then(function(results) {
-          if (results.length > 0) { scanCerca(results[0].rawValue); }
-          else { _scanFileH5(file); }
-        })
-        .catch(function() { _scanFileH5(file); });
-    };
-    img.src = URL.createObjectURL(file);
-    return;
+  function decodeFile() {
+    // Prova BarcodeDetector sull'immagine (istantaneo su Chrome)
+    if (window.BarcodeDetector) {
+      var img = new Image();
+      img.onload = function() {
+        new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] })
+          .detect(img).then(function(r) {
+            if (r.length > 0) { scanCerca(r[0].rawValue); }
+            else { _fileH5(file); }
+          }).catch(function() { _fileH5(file); });
+      };
+      img.src = URL.createObjectURL(file);
+    } else if (window.ZXing) {
+      _fileZXing(file);
+    } else {
+      _fileH5(file);
+    }
   }
-  _scanFileH5(file);
+  decodeFile();
 }
 
-function _scanFileH5(file) {
+function _fileZXing(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var scales = [1, 0.75, 0.5, 1.5];
+      var hints = new Map();
+      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+      var zr;
+      try { zr = new ZXing.MultiFormatReader(hints); } catch(ex) { _fileH5(file); return; }
+      var cv = document.createElement('canvas');
+      for (var i = 0; i < scales.length; i++) {
+        cv.width  = Math.round(img.naturalWidth  * scales[i]);
+        cv.height = Math.round(img.naturalHeight * scales[i]);
+        var cx = cv.getContext('2d');
+        // Try with contrast boost
+        cx.filter = 'contrast(2) grayscale(1)';
+        cx.drawImage(img, 0, 0, cv.width, cv.height);
+        cx.filter = 'none';
+        try {
+          var d = cx.getImageData(0, 0, cv.width, cv.height);
+          var res = zr.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height))));
+          if (res) { scanCerca(res.getText()); return; }
+        } catch(ex) {}
+        // Try without filter
+        cx.drawImage(img, 0, 0, cv.width, cv.height);
+        try {
+          var d2 = cx.getImageData(0, 0, cv.width, cv.height);
+          var res2 = zr.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d2.data, cv.width, cv.height))));
+          if (res2) { scanCerca(res2.getText()); return; }
+        } catch(ex) {}
+      }
+      _fileH5(file);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function _fileH5(file) {
   function run() {
-    var tmpId = 'scanTmp_' + Date.now();
-    var div = document.createElement('div');
-    div.id = tmpId; div.style.display = 'none';
-    document.body.appendChild(div);
-    var r = new Html5Qrcode(tmpId, { verbose: false });
-    r.scanFile(file, true)
-      .then(function(code) { div.remove(); scanCerca(code); })
-      .catch(function() { div.remove(); scanMostraErrore('Codice non rilevato. Avvicina il telefono, assicurati che il barcode sia ben illuminato e riprova.'); });
+    var tmp = document.createElement('div');
+    tmp.id = 'h5f_' + Date.now(); tmp.style.display = 'none';
+    document.body.appendChild(tmp);
+    new Html5Qrcode(tmp.id, { verbose: false }).scanFile(file, true)
+      .then(function(code) { tmp.remove(); scanCerca(code); })
+      .catch(function() { tmp.remove(); scanMostraErrore('Codice non rilevato. Avvicina il telefono, assicurati che il barcode sia illuminato e riprova.'); });
   }
   if (window.Html5Qrcode) { run(); return; }
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.onload = run;
-  s.onerror = function() { scanMostraErrore('Impossibile caricare il motore. Verifica la connessione.'); };
+  s.onerror = function() { scanMostraErrore('Motore non disponibile. Inserisci il codice manualmente.'); };
   document.head.appendChild(s);
 }
 
-// ── API Open Food Facts ───────────────────────────────────────────
+// ── Open Food Facts ───────────────────────────────────────────────
 async function scanCerca(code) {
+  if (!code || code.length < 4) { scanMostraErrore('Codice non valido.'); return; }
   document.getElementById('scanLoading').classList.add('visible');
   document.getElementById('scanResult').classList.remove('visible');
   document.getElementById('scanError').classList.remove('visible');
@@ -5314,48 +5392,43 @@ async function scanCerca(code) {
     var d = await r.json();
     document.getElementById('scanLoading').classList.remove('visible');
     if (d.status === 1 && d.product) { scanMostraProdotto(code, d.product); }
-    else { scanMostraErrore('Prodotto con codice ' + code + ' non trovato.'); }
+    else { scanMostraErrore('Prodotto ' + code + ' non trovato nel database.'); }
   } catch(e) {
     document.getElementById('scanLoading').classList.remove('visible');
     scanMostraErrore('Errore di rete. Controlla la connessione.');
   }
 }
 
-// ── Mostra risultato ──────────────────────────────────────────────
+// ── Mostra prodotto ───────────────────────────────────────────────
 function scanMostraProdotto(code, p) {
   _scan.product = { code: code, product: p };
   var imgEl = document.getElementById('scanImg');
-  var src   = p.image_url || p.image_front_url;
+  var src = p.image_url || p.image_front_url;
   if (src) {
     var img = document.createElement('img');
     img.src = src; img.className = 'scan-result-img'; img.alt = '';
     img.onerror = function(){ this.parentElement.innerHTML = '<div class="scan-result-placeholder">📦</div>'; };
     imgEl.innerHTML = ''; imgEl.appendChild(img);
-  } else {
-    imgEl.innerHTML = '<div class="scan-result-placeholder">📦</div>';
-  }
+  } else { imgEl.innerHTML = '<div class="scan-result-placeholder">📦</div>'; }
   document.getElementById('scanBrand').textContent = p.brands || '';
   document.getElementById('scanName').textContent  = p.product_name_it || p.product_name || 'Nome non disponibile';
   document.getElementById('scanCode').textContent  = '▦ ' + code;
-
   var campi = [];
   if (p.quantity) campi.push({ k:'Quantità', v:p.quantity });
-  if (p.categories_tags && p.categories_tags[0])
-    campi.push({ k:'Categoria', v:p.categories_tags[0].replace(/^[a-z]{2}:/,'').replace(/-/g,' ') });
-  if (p.nutriscore_grade) campi.push({ k:'Nutri-Score', v:'🍎 ' + p.nutriscore_grade.toUpperCase() });
-  if (p.ecoscore_grade)   campi.push({ k:'Eco-Score',   v:'🌱 ' + p.ecoscore_grade.toUpperCase() });
+  if (p.categories_tags && p.categories_tags[0]) campi.push({ k:'Categoria', v:p.categories_tags[0].replace(/^[a-z]{2}:/,'').replace(/-/g,' ') });
+  if (p.nutriscore_grade) campi.push({ k:'Nutri-Score', v:'🍎 '+p.nutriscore_grade.toUpperCase() });
+  if (p.ecoscore_grade)   campi.push({ k:'Eco-Score',   v:'🌱 '+p.ecoscore_grade.toUpperCase() });
   if (p.allergens)        campi.push({ k:'Allergeni',   v:p.allergens });
   var n = p.nutriments;
   if (n) {
-    if (n['energy-kcal_100g'] != null) campi.push({ k:'Energia/100g', v: Math.round(n['energy-kcal_100g']) + ' kcal' });
-    if (n['proteins_100g']    != null) campi.push({ k:'Proteine',     v: n['proteins_100g'] + ' g' });
-    if (n['carbohydrates_100g'] != null) campi.push({ k:'Carboidrati', v: n['carbohydrates_100g'] + ' g' });
-    if (n['fat_100g']         != null) campi.push({ k:'Grassi',       v: n['fat_100g'] + ' g' });
+    if (n['energy-kcal_100g']!=null) campi.push({ k:'Energia/100g', v:Math.round(n['energy-kcal_100g'])+' kcal' });
+    if (n['proteins_100g']!=null)    campi.push({ k:'Proteine',     v:n['proteins_100g']+' g' });
+    if (n['carbohydrates_100g']!=null) campi.push({ k:'Carboidrati', v:n['carbohydrates_100g']+' g' });
+    if (n['fat_100g']!=null)         campi.push({ k:'Grassi',       v:n['fat_100g']+' g' });
   }
   document.getElementById('scanGrid').innerHTML = campi.map(function(f){
-    return '<div class="scan-result-field"><strong>' + f.k + '</strong><span>' + (f.v || '—') + '</span></div>';
+    return '<div class="scan-result-field"><strong>'+f.k+'</strong><span>'+(f.v||'—')+'</span></div>';
   }).join('');
-
   document.getElementById('scanResult').classList.add('visible');
   document.getElementById('scanResult').scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
@@ -5375,16 +5448,16 @@ function scanReset() {
 
 function scanImporta() {
   if (!_scan.product) return;
-  var p    = _scan.product.product;
+  var p = _scan.product.product;
   var nome = p.product_name_it || p.product_name || 'Prodotto scansionato';
   var marc = p.brands || '';
   showPage('rintracciabilita');
   setTimeout(function() {
     apriFormReg();
     setTimeout(function() {
-      var d = document.getElementById('rDDT'),  n = document.getElementById('rNote');
+      var d = document.getElementById('rDDT'), n = document.getElementById('rNote');
       if (d) d.value = _scan.product.code;
-      if (n) n.value = (marc ? marc + ' — ' : '') + nome;
+      if (n) n.value = (marc ? marc+' — ' : '') + nome;
       showToast('📦 Dati importati! Completa la registrazione.');
     }, 300);
   }, 200);
