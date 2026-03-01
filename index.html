@@ -2100,26 +2100,52 @@
     font-family: 'Barlow Condensed', sans-serif;
   }
   #scanModal .sm-bottom {
-    display: flex; flex-direction: column; align-items: center; gap: .75rem;
-    padding: 1rem 1.5rem max(env(safe-area-inset-bottom,0px),24px);
-    background: linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 100%);
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    padding: 1.2rem 1.5rem max(env(safe-area-inset-bottom,0px),28px);
+    background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
     flex-shrink: 0;
   }
   #scanModal .sm-status {
-    font-size: .72rem; color: rgba(255,255,255,.5);
-    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px;
-    min-height: 1em;
+    font-size: .75rem; color: rgba(255,255,255,.6);
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1.5px;
+    text-align: center; text-transform: uppercase;
   }
-  #scanModal .sm-manual-row { display:flex; gap:.5rem; width:100%; max-width:320px; }
+  /* Grande pulsante otturatore centrale */
+  #scanModal .sm-shutter-btn {
+    display: flex; flex-direction: column; align-items: center; gap: .4rem;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  #scanModal .sm-shutter-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 4px solid rgba(255,255,255,.7);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .12s; box-shadow: 0 0 0 0 rgba(232,160,32,0);
+  }
+  #scanModal .sm-shutter-btn:active .sm-shutter-ring {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 6px rgba(232,160,32,.25);
+    transform: scale(.93);
+  }
+  #scanModal .sm-shutter-inner {
+    width: 54px; height: 54px; border-radius: 50%; background: #fff;
+    transition: all .12s;
+  }
+  #scanModal .sm-shutter-btn:active .sm-shutter-inner { background: var(--accent); }
+  #scanModal .sm-shutter-label {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    letter-spacing: 3px; font-size: .8rem; color: rgba(255,255,255,.8);
+    text-transform: uppercase;
+  }
+  #scanModal .sm-manual-row { display:flex; gap:.5rem; width:100%; max-width:300px; }
   #scanModal .sm-input {
     flex:1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
-    border-radius:8px; padding:.55rem .9rem; color:#fff; font-size:.9rem;
+    border-radius:8px; padding:.5rem .8rem; color:#fff; font-size:.88rem;
     outline:none; font-family:'Barlow',sans-serif;
   }
-  #scanModal .sm-input::placeholder { color:rgba(255,255,255,.35); }
+  #scanModal .sm-input::placeholder { color:rgba(255,255,255,.3); }
   #scanModal .sm-go {
     background:var(--accent); color:var(--navy); border:none;
-    border-radius:8px; padding:.55rem 1rem; font-weight:800;
+    border-radius:8px; padding:.5rem .9rem; font-weight:800;
     font-family:'Barlow Condensed',sans-serif; cursor:pointer; font-size:.9rem;
   }
   #scanFileInput { display: none; }
@@ -5080,13 +5106,12 @@ function switchDeratTab(tab, btn) {
 
 
 // ═══════════════════════════════════════════════════════════════
-//  BARCODE SCANNER - Multi-frame aggressive decoder
+//  BARCODE SCANNER
+//  Su iPhone Safari: video live come mirino, SCATTA = foto
+//  alta risoluzione decodificata da html5-qrcode (affidabile)
+//  Su Chrome/Android: BarcodeDetector nativo in loop automatico
 // ═══════════════════════════════════════════════════════════════
-
-var _scan = {
-  product: null, stream: null, timer: null,
-  active: false, detector: null, worker: null
-};
+var _scan = { product:null, stream:null, timer:null, active:false };
 
 function scanApri() {
   document.getElementById('scanModal').classList.add('open');
@@ -5098,194 +5123,111 @@ function scanApri() {
 function scanChiudi() {
   _scan.active = false;
   clearTimeout(_scan.timer);
-  _scanFermaStream();
+  if (_scan.stream) { _scan.stream.getTracks().forEach(function(t){ t.stop(); }); _scan.stream = null; }
+  var v = document.getElementById('scanVideo');
+  if (v) { try { v.srcObject = null; } catch(e){} }
   document.getElementById('scanModal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
-function _scanFermaStream() {
-  if (_scan.stream) { _scan.stream.getTracks().forEach(function(t){ t.stop(); }); _scan.stream = null; }
-  var v = document.getElementById('scanVideo');
-  if (v) { try { v.srcObject = null; } catch(e){} }
-}
-
 function _scanAvvia() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    _scanStatus('Usa il codice manuale ↓'); return;
+    _scanStatus('Premi SCATTA per fotografare il barcode'); return;
   }
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-  }).catch(function(){
-    return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
-  }).catch(function(){
-    return navigator.mediaDevices.getUserMedia({ video: true });
-  }).then(function(stream) {
-    if (!_scan.active) { stream.getTracks().forEach(function(t){ t.stop(); }); return; }
-    _scan.stream = stream;
-    var v = document.getElementById('scanVideo');
-    v.srcObject = stream;
-    v.play().catch(function(){});
-    v.addEventListener('loadedmetadata', function() { _scanScegliMotore(v); }, { once: true });
-  }).catch(function() {
-    _scanStatus('Fotocamera non accessibile. Usa il codice manuale ↓');
-  });
-}
-
-function _scanScegliMotore(video) {
-  if (window.BarcodeDetector) {
-    _scan.detector = new BarcodeDetector({
-      formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','codabar','itf','qr_code']
+  // Chiedi la massima risoluzione possibile — migliora lettura barcode piccoli
+  var constraints = {
+    video: {
+      facingMode: { ideal: 'environment' },
+      width:  { ideal: 3840 },
+      height: { ideal: 2160 }
+    }
+  };
+  navigator.mediaDevices.getUserMedia(constraints)
+    .catch(function(){ return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } }); })
+    .catch(function(){ return navigator.mediaDevices.getUserMedia({ video: true }); })
+    .then(function(stream) {
+      if (!_scan.active) { stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+      _scan.stream = stream;
+      var v = document.getElementById('scanVideo');
+      v.srcObject = stream;
+      v.play().catch(function(){});
+      // Su Chrome/Android usa BarcodeDetector automatico
+      // Su Safari avvia comunque il loop ZXing come tentativo
+      v.addEventListener('loadedmetadata', function() {
+        if (window.BarcodeDetector) {
+          _scanStatus('Punta il barcode — rileva automaticamente');
+          _scanLoopNativo(v);
+        } else {
+          _scanStatus('Premi SCATTA per leggere il barcode');
+          // Tenta anche loop ZXing in background su Safari
+          _scanLoopZXingBackground(v);
+        }
+      }, { once: true });
+    })
+    .catch(function() {
+      _scanStatus('Premi SCATTA per fotografare il barcode');
     });
-    _scanStatus('Punta il barcode...');
-    _scanLoopNativo(video);
-  } else {
-    _scanCaricaZXing(video);
-  }
 }
 
-// ── Motore 1: BarcodeDetector nativo (Chrome/Edge/Android) ───────
+// ── Chrome/Edge/Android: BarcodeDetector nativo ──────────────────
 function _scanLoopNativo(video) {
   if (!_scan.active) return;
-  _scan.detector.detect(video)
-    .then(function(res) {
-      if (!_scan.active) return;
-      if (res.length > 0) { _scanTrovato(res[0].rawValue); return; }
-      _scan.timer = setTimeout(function(){ _scanLoopNativo(video); }, 80);
-    })
-    .catch(function(){ if (_scan.active) _scan.timer = setTimeout(function(){ _scanLoopNativo(video); }, 150); });
-}
-
-// ── Motore 2: ZXing aggressivo multi-variante (Safari/Firefox) ───
-function _scanCaricaZXing(video) {
-  _scanStatus('Caricamento motore scanner...');
-  if (window.ZXing) { _scanLoopZXing(video); return; }
-  var s = document.createElement('script');
-  s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
-  s.onload = function() { _scanLoopZXing(video); };
-  s.onerror = function() { _scanCaricaH5Fallback(video); };
-  document.head.appendChild(s);
-}
-
-function _scanLoopZXing(video) {
-  if (!_scan.active) return;
-  if (video.readyState < 2 || video.videoWidth === 0) {
-    _scan.timer = setTimeout(function(){ _scanLoopZXing(video); }, 150); return;
-  }
-  _scanStatus('Punta il barcode...');
-
-  var W = video.videoWidth, H = video.videoHeight;
-  var hints = new Map();
-  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-    ZXing.BarcodeFormat.UPC_A,  ZXing.BarcodeFormat.UPC_E,
-    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39
-  ]);
-  var reader;
-  try { reader = new ZXing.MultiFormatReader(hints); }
-  catch(e) { _scanCaricaH5Fallback(video); return; }
-
-  // Canvases riutilizzati per performance
-  var cvMain = document.createElement('canvas');
-  var cvCrop = document.createElement('canvas');
-  var cvSmall= document.createElement('canvas');
-  var cvHiCon= document.createElement('canvas');
-  var cvRot  = document.createElement('canvas');
-  var ctxMain  = cvMain.getContext('2d', { willReadFrequently: true });
-  var ctxCrop  = cvCrop.getContext('2d', { willReadFrequently: true });
-  var ctxSmall = cvSmall.getContext('2d', { willReadFrequently: true });
-  var ctxHiCon = cvHiCon.getContext('2d', { willReadFrequently: true });
-  var ctxRot   = cvRot.getContext('2d', { willReadFrequently: true });
-
-  function decodeCanvas(cv, ctx) {
-    try {
-      var d = ctx.getImageData(0, 0, cv.width, cv.height);
-      var lum = new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height);
-      var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
-      var res = reader.decode(bmp);
-      return res && res.getText ? res.getText() : null;
-    } catch(e) { return null; }
-  }
-
+  var det = new BarcodeDetector({
+    formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','codabar','itf','qr_code']
+  });
   function tick() {
     if (!_scan.active) return;
-
-    // 1. Frame originale full res
-    cvMain.width = W; cvMain.height = H;
-    ctxMain.drawImage(video, 0, 0);
-    var code = decodeCanvas(cvMain, ctxMain);
-    if (code) { _scanTrovato(code); return; }
-
-    // 2. Ritaglio centrale (zona mirino) — elimina rumore bordi
-    var cx = Math.round(W * 0.1), cy = Math.round(H * 0.25);
-    var cw = Math.round(W * 0.8), ch = Math.round(H * 0.5);
-    cvCrop.width = cw; cvCrop.height = ch;
-    ctxCrop.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
-    code = decodeCanvas(cvCrop, ctxCrop);
-    if (code) { _scanTrovato(code); return; }
-
-    // 3. Scala ridotta 50% — barcode lontani diventano proporzionalmente più grandi
-    cvSmall.width = Math.round(W * 0.5); cvSmall.height = Math.round(H * 0.5);
-    ctxSmall.drawImage(video, 0, 0, cvSmall.width, cvSmall.height);
-    code = decodeCanvas(cvSmall, ctxSmall);
-    if (code) { _scanTrovato(code); return; }
-
-    // 4. Alto contrasto — supera riflessi e packaging lucido
-    cvHiCon.width = W; cvHiCon.height = H;
-    ctxHiCon.filter = 'contrast(2.5) grayscale(1) brightness(1.1)';
-    ctxHiCon.drawImage(video, 0, 0);
-    ctxHiCon.filter = 'none';
-    code = decodeCanvas(cvHiCon, ctxHiCon);
-    if (code) { _scanTrovato(code); return; }
-
-    // 5. Alto contrasto sul ritaglio centrale
-    cvRot.width = cw; cvRot.height = ch;
-    ctxRot.filter = 'contrast(2.5) grayscale(1)';
-    ctxRot.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
-    ctxRot.filter = 'none';
-    code = decodeCanvas(cvRot, ctxRot);
-    if (code) { _scanTrovato(code); return; }
-
-    _scan.timer = setTimeout(tick, 100);
+    det.detect(video).then(function(res) {
+      if (!_scan.active) return;
+      if (res.length > 0) { _scanTrovato(res[0].rawValue); return; }
+      _scan.timer = setTimeout(tick, 80);
+    }).catch(function() { if (_scan.active) _scan.timer = setTimeout(tick, 150); });
   }
   tick();
 }
 
-// ── Fallback finale: html5-qrcode ────────────────────────────────
-function _scanCaricaH5Fallback(video) {
-  _scanStatus('Caricamento fallback...');
-  if (window.Html5Qrcode) { _scanLoopH5(video); return; }
-  var s = document.createElement('script');
-  s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-  s.onload = function() { _scanLoopH5(video); };
-  s.onerror = function() { _scanStatus('Scanner non disponibile. Usa il codice manuale ↓'); };
-  document.head.appendChild(s);
-}
-
-function _scanLoopH5(video) {
-  _scanStatus('Punta il barcode...');
-  var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+// ── Safari: ZXing in background (tenta, ma senza aspettarsi successo) ──
+function _scanLoopZXingBackground(video) {
+  if (!window.ZXing) {
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+    s.onload = function() { _scanLoopZXingBackground(video); };
+    document.head.appendChild(s);
+    return;
+  }
+  var hints = new Map();
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  var reader; try { reader = new ZXing.MultiFormatReader(hints); } catch(e) { return; }
+  var cv = document.createElement('canvas');
+  var ctx = cv.getContext('2d', { willReadFrequently: true });
   function tick() {
     if (!_scan.active) return;
     if (video.readyState < 2 || !video.videoWidth) { _scan.timer = setTimeout(tick, 200); return; }
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    canvas.toBlob(function(blob) {
-      if (!blob || !_scan.active) return;
-      var f = new File([blob], 'f.jpg', { type: 'image/jpeg' });
-      var tmp = document.createElement('div');
-      tmp.id = 'h5tmp_' + Date.now(); tmp.style.display = 'none';
-      document.body.appendChild(tmp);
-      new Html5Qrcode(tmp.id, { verbose: false }).scanFile(f, false)
-        .then(function(code) { tmp.remove(); if (_scan.active) _scanTrovato(code); })
-        .catch(function() { tmp.remove(); if (_scan.active) _scan.timer = setTimeout(tick, 150); });
-    }, 'image/jpeg', 0.9);
+    // Prova 4 varianti ogni frame
+    var W = video.videoWidth, H = video.videoHeight;
+    var variants = [
+      [W, H, 0, 0, W, H, 'none'],
+      [Math.round(W*.8), Math.round(H*.5), Math.round(W*.1), Math.round(H*.25), Math.round(W*.8), Math.round(H*.5), 'none'],
+      [W, H, 0, 0, W, H, 'contrast(2.5) grayscale(1)'],
+      [Math.round(W*.5), Math.round(H*.5), 0, 0, W, H, 'contrast(2) grayscale(1)']
+    ];
+    for (var i = 0; i < variants.length; i++) {
+      var v = variants[i];
+      cv.width = v[0]; cv.height = v[1];
+      ctx.filter = v[6];
+      ctx.drawImage(video, v[2], v[3], v[4], v[5], 0, 0, v[0], v[1]);
+      ctx.filter = 'none';
+      try {
+        var d = ctx.getImageData(0, 0, cv.width, cv.height);
+        var res = reader.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height))));
+        if (res && res.getText()) { _scanTrovato(res.getText()); return; }
+      } catch(e) {}
+    }
+    _scan.timer = setTimeout(tick, 120);
   }
   tick();
 }
 
-// ── Codice trovato ────────────────────────────────────────────────
 function _scanTrovato(code) {
   if (!_scan.active) return;
   _scan.active = false;
@@ -5294,7 +5236,8 @@ function _scanTrovato(code) {
   scanCerca(code);
 }
 
-// ── File input (pulsante otturatore) ─────────────────────────────
+// ── SCATTA: foto alta risoluzione → decodifica ───────────────────
+// Questo è il metodo principale su iPhone Safari
 function scanFileSelected(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
@@ -5304,80 +5247,91 @@ function scanFileSelected(input) {
   document.getElementById('scanResult').classList.remove('visible');
   document.getElementById('scanError').classList.remove('visible');
 
-  function decodeFile() {
-    // Prova BarcodeDetector sull'immagine (istantaneo su Chrome)
-    if (window.BarcodeDetector) {
-      var img = new Image();
-      img.onload = function() {
-        new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] })
-          .detect(img).then(function(r) {
-            if (r.length > 0) { scanCerca(r[0].rawValue); }
-            else { _fileH5(file); }
-          }).catch(function() { _fileH5(file); });
-      };
-      img.src = URL.createObjectURL(file);
-    } else if (window.ZXing) {
-      _fileZXing(file);
-    } else {
-      _fileH5(file);
-    }
-  }
-  decodeFile();
-}
-
-function _fileZXing(file) {
-  var reader = new FileReader();
-  reader.onload = function(e) {
+  // 1. Prova BarcodeDetector sull'immagine (Chrome/Edge — istantaneo)
+  if (window.BarcodeDetector) {
+    var url = URL.createObjectURL(file);
     var img = new Image();
     img.onload = function() {
-      var scales = [1, 0.75, 0.5, 1.5];
-      var hints = new Map();
-      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-      var zr;
-      try { zr = new ZXing.MultiFormatReader(hints); } catch(ex) { _fileH5(file); return; }
-      var cv = document.createElement('canvas');
-      for (var i = 0; i < scales.length; i++) {
-        cv.width  = Math.round(img.naturalWidth  * scales[i]);
-        cv.height = Math.round(img.naturalHeight * scales[i]);
-        var cx = cv.getContext('2d');
-        // Try with contrast boost
-        cx.filter = 'contrast(2) grayscale(1)';
-        cx.drawImage(img, 0, 0, cv.width, cv.height);
-        cx.filter = 'none';
-        try {
-          var d = cx.getImageData(0, 0, cv.width, cv.height);
-          var res = zr.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height))));
-          if (res) { scanCerca(res.getText()); return; }
-        } catch(ex) {}
-        // Try without filter
-        cx.drawImage(img, 0, 0, cv.width, cv.height);
-        try {
-          var d2 = cx.getImageData(0, 0, cv.width, cv.height);
-          var res2 = zr.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d2.data, cv.width, cv.height))));
-          if (res2) { scanCerca(res2.getText()); return; }
-        } catch(ex) {}
-      }
-      _fileH5(file);
+      new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','codabar','itf','qr_code'] })
+        .detect(img).then(function(r) {
+          URL.revokeObjectURL(url);
+          if (r.length > 0) { scanCerca(r[0].rawValue); }
+          else { _decodeFileH5(file); }
+        }).catch(function() { URL.revokeObjectURL(url); _decodeFileH5(file); });
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    img.src = url;
+    return;
+  }
+  // 2. Su Safari/Firefox: html5-qrcode scanFile — progettato proprio per questo
+  _decodeFileH5(file);
 }
 
-function _fileH5(file) {
+function _decodeFileH5(file) {
   function run() {
-    var tmp = document.createElement('div');
-    tmp.id = 'h5f_' + Date.now(); tmp.style.display = 'none';
-    document.body.appendChild(tmp);
-    new Html5Qrcode(tmp.id, { verbose: false }).scanFile(file, true)
-      .then(function(code) { tmp.remove(); scanCerca(code); })
-      .catch(function() { tmp.remove(); scanMostraErrore('Codice non rilevato. Avvicina il telefono, assicurati che il barcode sia illuminato e riprova.'); });
+    var tmpId = 'h5tmp' + Date.now();
+    var div = document.createElement('div');
+    div.id = tmpId; div.style.display = 'none';
+    document.body.appendChild(div);
+    new Html5Qrcode(tmpId, { verbose: false })
+      .scanFile(file, /* showImage= */ true)
+      .then(function(code) {
+        div.remove();
+        scanCerca(code);
+      })
+      .catch(function() {
+        div.remove();
+        // Ultimo tentativo: ZXing multi-scala sull'immagine
+        _decodeFileZXing(file);
+      });
   }
   if (window.Html5Qrcode) { run(); return; }
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.onload = run;
-  s.onerror = function() { scanMostraErrore('Motore non disponibile. Inserisci il codice manualmente.'); };
+  s.onerror = function() { _decodeFileZXing(file); };
+  document.head.appendChild(s);
+}
+
+function _decodeFileZXing(file) {
+  function run() {
+    var fr = new FileReader();
+    fr.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var hints = new Map();
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        var reader; try { reader = new ZXing.MultiFormatReader(hints); } catch(ex) {
+          scanMostraErrore('Barcode non leggibile. Avvicina, centra e riprova.'); return;
+        }
+        var cv = document.createElement('canvas');
+        var scales = [1, 0.75, 0.5, 1.5, 0.35];
+        var filters = ['contrast(2.5) grayscale(1)', 'none', 'contrast(1.5)', 'grayscale(1) brightness(1.2)'];
+        for (var si = 0; si < scales.length; si++) {
+          for (var fi = 0; fi < filters.length; fi++) {
+            cv.width  = Math.round(img.naturalWidth  * scales[si]);
+            cv.height = Math.round(img.naturalHeight * scales[si]);
+            var ctx = cv.getContext('2d');
+            ctx.filter = filters[fi];
+            ctx.drawImage(img, 0, 0, cv.width, cv.height);
+            ctx.filter = 'none';
+            try {
+              var d = ctx.getImageData(0, 0, cv.width, cv.height);
+              var res = reader.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(d.data, cv.width, cv.height))));
+              if (res && res.getText()) { scanCerca(res.getText()); return; }
+            } catch(ex) {}
+          }
+        }
+        scanMostraErrore('Barcode non rilevato. Tieni il telefono fermo, buona luce, barcode ben centrato nel mirino.');
+      };
+      img.src = e.target.result;
+    };
+    fr.readAsDataURL(file);
+  }
+  if (window.ZXing) { run(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+  s.onload = run;
+  s.onerror = function() { scanMostraErrore('Barcode non rilevato. Inserisci il codice manualmente.'); };
   document.head.appendChild(s);
 }
 
@@ -5392,14 +5346,13 @@ async function scanCerca(code) {
     var d = await r.json();
     document.getElementById('scanLoading').classList.remove('visible');
     if (d.status === 1 && d.product) { scanMostraProdotto(code, d.product); }
-    else { scanMostraErrore('Prodotto ' + code + ' non trovato nel database.'); }
+    else { scanMostraErrore('Prodotto ' + code + ' non trovato nel database Open Food Facts.'); }
   } catch(e) {
     document.getElementById('scanLoading').classList.remove('visible');
     scanMostraErrore('Errore di rete. Controlla la connessione.');
   }
 }
 
-// ── Mostra prodotto ───────────────────────────────────────────────
 function scanMostraProdotto(code, p) {
   _scan.product = { code: code, product: p };
   var imgEl = document.getElementById('scanImg');
@@ -5620,11 +5573,18 @@ if(isLoggedIn()) initHero();
         <div class="sm-corner bl"></div>
         <div class="sm-corner br"></div>
         <div class="sm-laser"></div>
-        <div class="sm-hint">CENTRA IL BARCODE</div>
       </div>
     </div>
     <div class="sm-bottom">
-      <div class="sm-status" id="smStatus">Caricamento fotocamera...</div>
+      <div class="sm-status" id="smStatus">Premi il pulsante per scansionare</div>
+      <!-- PULSANTE PRINCIPALE: scatta foto alta risoluzione -->
+      <label class="sm-shutter-btn" for="scanFileInput">
+        <div class="sm-shutter-ring">
+          <div class="sm-shutter-inner"></div>
+        </div>
+        <span class="sm-shutter-label">SCATTA</span>
+      </label>
+      <input type="file" id="scanFileInput" accept="image/*" capture="environment" onchange="scanFileSelected(this)">
       <div class="sm-manual-row">
         <input class="sm-input" id="smManual" type="text" inputmode="numeric"
           maxlength="14" placeholder="Inserisci codice a mano..."
@@ -5633,7 +5593,6 @@ if(isLoggedIn()) initHero();
       </div>
     </div>
   </div>
-  <input type="file" id="scanFileInput" accept="image/*" capture="environment" onchange="scanFileSelected(this)">
 </div>
 </body>
 </html>
