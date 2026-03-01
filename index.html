@@ -1,0 +1,5514 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PF GESTIONALE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2040;
+    --blue: #1a4080;
+    --accent: #e8a020;
+    --accent2: #f5c040;
+    --light: #e8eef5;
+    --white: #ffffff;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --gray: #8899aa;
+    --border: rgba(255,255,255,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--blue) 100%);
+    border-bottom: 3px solid var(--accent);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 70px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: var(--navy);
+  }
+
+  .logo-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: var(--white);
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  /* ===== NAVBAR ===== */
+  nav { display: flex; align-items: center; gap: 0.5rem; }
+
+  .nav-btn {
+    padding: 0.5rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: var(--light);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    background: rgba(232,160,32,0.2);
+    color: var(--accent);
+  }
+
+  .dropdown-wrapper { position: relative; }
+
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 0 0 8px 8px;
+    min-width: 260px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  .dropdown-menu.open { display: block; }
+
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--light);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: rgba(232,160,32,0.15); color: var(--accent); padding-left: 2rem; }
+
+  .date-display {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    color: var(--gray);
+    letter-spacing: 1px;
+  }
+
+  /* ===== PAGES ===== */
+  .page { display: none; max-width: 1400px; margin: 0 auto; padding: 2rem; }
+  #page-home { padding: 0; max-width: 100%; }
+  .page.active { display: block; }
+
+  /* ===== HERO ===== */
+  /* ===== HERO ANIMATED ===== */
+  .hero {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(26,64,128,0.35) 0%, transparent 70%);
+  }
+
+  /* Canvas particle background */
+  #heroCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Animated grid lines */
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(232,160,32,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,160,32,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  @keyframes gridShift {
+    0%   { background-position: 0 0; }
+    100% { background-position: 60px 60px; }
+  }
+
+  /* Glow orbs */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(80px);
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .hero-orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(26,64,128,0.5) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+  .hero-orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(232,160,32,0.12) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    animation-delay: -3s;
+  }
+  .hero-orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(26,64,128,0.3) 0%, transparent 70%);
+    top: 30%; right: 10%;
+    animation-delay: -5s;
+    animation-duration: 11s;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(30px, -20px) scale(1.05); }
+    66%       { transform: translate(-20px, 15px) scale(0.97); }
+  }
+
+  /* Scanline effect */
+  .hero-scanline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(232,160,32,0.15), transparent);
+    pointer-events: none;
+    z-index: 1;
+    animation: scanline 6s linear infinite;
+  }
+  @keyframes scanline {
+    0%   { top: -2px; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* Hero content */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+
+
+
+
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: -2px;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.8s ease 0.15s both;
+  }
+
+  .hero h1 .gold {
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,160,32,0.4), 0 0 80px rgba(232,160,32,0.1);
+    position: relative;
+  }
+  .hero h1 .line2 {
+    display: block;
+    font-size: 0.42em;
+    font-weight: 400;
+    letter-spacing: 10px;
+    color: transparent;
+    background: linear-gradient(90deg, var(--gray) 0%, rgba(232,160,32,0.6) 50%, var(--gray) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    margin-top: 0.7rem;
+    animation: shimmer 4s linear 1s infinite;
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: rgba(136,153,170,0.9);
+    max-width: 520px;
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.8s ease 0.3s both;
+  }
+
+  /* Live stats strip */
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.8s ease 0.45s both;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    position: relative;
+  }
+  .hero-stat::after {
+    content: '';
+    position: absolute;
+    right: -1rem;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background: var(--border);
+  }
+  .hero-stat:last-child::after { display: none; }
+  .hero-stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(232,160,32,0.3);
+    transition: all 0.3s;
+  }
+  .hero-stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    font-weight: 600;
+  }
+
+  .hero-menu-btn-wrap {
+    animation: fadeInUp 0.8s ease 0.55s both;
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Modules quick-access grid */
+  /* hero-modules defined in layout section below */
+  .hero-module-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.9rem 0.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+    -webkit-tap-highlight-color: transparent;
+    color: var(--light);
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .hero-module-btn:hover {
+    background: rgba(232,160,32,0.07);
+    border-color: rgba(232,160,32,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    color: var(--accent);
+  }
+  .hero-module-btn .hm-icon { font-size: 1.6rem; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+    @media(max-width:768px) {
+      .hero { padding: 2rem 1rem 5rem; }
+      .hero h1 { font-size: clamp(3rem, 14vw, 5rem); }
+      .hero-sub { font-size: 0.9rem; }
+      .hero-stats { gap: 1.2rem; }
+      .hero-stat-num { font-size: 1.5rem; }
+      .hero-modules-row1 { grid-template-columns: repeat(2, 1fr); }
+      .hero-module-btn { font-size: 0.65rem; padding: 0.7rem 0.3rem; }
+      .hero-module-btn .hm-icon { font-size: 1.3rem; }
+      .hero-grid { background-size: 40px 40px; }
+    }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-cards {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    text-align: left;
+    min-width: 200px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .hero-card:hover {
+    background: rgba(232,160,32,0.08);
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+  .hero-card .card-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+  .hero-card .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .hero-card p { font-size: 0.82rem; color: var(--gray); }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .section-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .section-header .badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 100px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== TABS ===== */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: rgba(255,255,255,0.03);
+    padding: 0.4rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .tab-btn {
+    padding: 0.6rem 1.4rem;
+    border: none;
+    background: transparent;
+    color: var(--gray);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: var(--navy);
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ===== FORM ===== */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.6rem 0.9rem;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .form-group select option { background: var(--navy2); }
+
+  .form-group input.auto-filled {
+    background: rgba(46,204,113,0.08);
+    border-color: rgba(46,204,113,0.3);
+    color: var(--green);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    padding: 0.7rem 1.8rem;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--navy);
+  }
+
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--light);
+  }
+
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+  }
+
+  .btn-danger:hover { background: var(--red); color: white; }
+
+  .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+
+  .btn-group { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  /* ===== TABLE ===== */
+  .table-wrapper { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    background: rgba(232,160,32,0.1);
+    color: var(--accent);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.9rem;
+    color: var(--light);
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.03); }
+
+  .badge-ok {
+    background: rgba(46,204,113,0.15);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .badge-warn {
+    background: rgba(231,76,60,0.15);
+    color: var(--red);
+    border: 1px solid rgba(231,76,60,0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  /* ===== TEMPERATURE SPECIFIC ===== */
+  .temp-today-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .temp-cell {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .temp-cell:hover { border-color: var(--accent); }
+  .temp-cell.editing { border-color: var(--accent); background: rgba(232,160,32,0.06); }
+
+  .temp-cell .label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .temp-cell .value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .temp-cell .value.green { color: var(--green); }
+  .temp-cell .value.red { color: var(--red); }
+
+  .temp-cell .sub { font-size: 0.72rem; color: var(--gray); margin-top: 0.2rem; }
+
+  .temp-cell input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.2rem;
+  }
+
+  .temp-cell input:focus { outline: none; }
+
+  /* ===== RINTRACCIABILITA ===== */
+  .merce-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(26,64,128,0.4);
+    border: 1px solid rgba(26,64,128,0.6);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    margin: 0.3rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .merce-tag:hover {
+    background: rgba(232,160,32,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .merce-tag.selected {
+    background: rgba(232,160,32,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .merce-tag .remove { color: var(--red); font-weight: 700; cursor: pointer; }
+
+  /* ===== FORNITORI ===== */
+  .fornitore-chip {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.82rem;
+    margin: 0.2rem;
+  }
+
+  /* ===== AUTO TAG ===== */
+  .auto-tag {
+    display: inline-block;
+    background: rgba(46,204,113,0.1);
+    border: 1px solid rgba(46,204,113,0.3);
+    color: var(--green);
+    padding: 0.2rem 0.7rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+
+  /* ===== INFO BOX ===== */
+  .info-box {
+    background: rgba(232,160,32,0.08);
+    border: 1px solid rgba(232,160,32,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.2rem;
+    font-size: 0.88rem;
+    color: var(--light);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center;
+    padding: 0.6rem 1rem;
+    color: rgba(136,153,170,0.4);
+    font-size: 0.7rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 1px;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 2rem;
+    min-width: 340px;
+    max-width: 500px;
+    width: 100%;
+  }
+
+  .modal h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+    color: var(--accent);
+  }
+
+  .pill-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.82rem;
+    color: var(--light);
+  }
+
+  .pill .del-pill {
+    cursor: pointer;
+    color: var(--red);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* ===== BOTTOM NAV MOBILE ===== */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--navy2);
+    border-top: 2px solid var(--accent);
+    padding: 0.5rem 0 env(safe-area-inset-bottom, 0.5rem);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+  }
+
+  .bottom-nav-inner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .bnav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    color: var(--gray);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bnav-btn .bnav-icon { font-size: 1.4rem; line-height: 1; }
+  .bnav-btn.active { color: var(--accent); }
+
+  /* Dropdown mobile: full width */
+  .dropdown-menu-mobile {
+    display: none;
+    position: fixed;
+    bottom: 70px;
+    left: 1rem;
+    right: 1rem;
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 12px;
+    z-index: 300;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  .dropdown-menu-mobile.open { display: block; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    /* Hide desktop nav, show bottom nav */
+    header nav { display: none; }
+    .bottom-nav { display: block; }
+
+    /* Header simpler */
+    .header-inner { height: 58px; padding: 0; }
+    header { padding: 0 1rem; }
+    .logo-text { font-size: 1.2rem; }
+    .logo-icon { width: 36px; height: 36px; font-size: 1.1rem; }
+
+    /* Pages padding + bottom nav clearance */
+    .page { padding: 1rem; padding-bottom: 90px; }
+
+    /* Hero */
+    .hero {
+      min-height: calc(100vh - 58px);
+      padding: 2rem 1rem;
+      padding-bottom: 100px;
+    }
+  
+    .hero h1 { font-size: clamp(2.8rem, 14vw, 5rem); }
+    .hero h1 .line2 { font-size: 0.45em; letter-spacing: 4px; }
+    .hero-sub { font-size: 0.95rem; margin-bottom: 2rem; }
+    .hero-cards { gap: 0.8rem; }
+    .hero-card { min-width: 140px; padding: 1.2rem 1rem; flex: 1; }
+    .hero-card .card-icon { font-size: 1.6rem; }
+    .hero-card .card-title { font-size: 0.88rem; }
+    .hero-card p { font-size: 0.76rem; }
+
+    /* Section header */
+    .section-header { flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .section-header h2 { font-size: 1.3rem; letter-spacing: 1px; }
+
+    /* Tabs: full width, scrollable */
+    .tabs { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-btn { padding: 0.55rem 0.9rem; font-size: 0.85rem; letter-spacing: 0.5px; white-space: nowrap; }
+
+    /* Cards */
+    .card { padding: 1rem; margin-bottom: 1rem; }
+    .card h3 { font-size: 1rem; margin-bottom: 0.8rem; }
+
+    /* Forms: 1 column on mobile */
+    .form-grid { grid-template-columns: 1fr; gap: 0.8rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      font-size: 1rem; /* prevent iOS zoom */
+      padding: 0.75rem 0.9rem;
+    }
+    .form-group label { font-size: 0.72rem; }
+
+    /* Buttons: full width on mobile */
+    .btn-group { flex-direction: column; gap: 0.6rem; }
+    .btn { width: 100%; text-align: center; padding: 0.9rem 1rem; font-size: 1rem; }
+    .btn-sm { width: auto; padding: 0.5rem 1rem; }
+    .btn-group .btn-sm { width: auto; }
+
+    /* Temperature grid: 2 columns */
+    .temp-today-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .temp-cell { padding: 0.75rem 0.5rem; }
+    .temp-cell .value { font-size: 1.6rem; }
+    .temp-cell .label { font-size: 0.62rem; }
+    .temp-cell .sub { font-size: 0.62rem; }
+    .temp-cell input { font-size: 1.5rem; }
+
+    /* Merce tags: larger touch targets */
+    .merce-tag { padding: 0.6rem 0.9rem; font-size: 0.9rem; margin: 0.25rem; }
+
+    /* Admin grid: single column */
+    #page-admin > div { grid-template-columns: 1fr !important; }
+
+    /* Info box */
+    .info-box { font-size: 0.82rem; padding: 0.8rem 1rem; }
+
+    /* Table: scrollable */
+    .table-wrapper { -webkit-overflow-scrolling: touch; }
+    td, th { font-size: 0.78rem; padding: 0.6rem 0.7rem; }
+
+    /* Footer clearance */
+    footer { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+    /* Pills in admin */
+    .pill-list { gap: 0.4rem; }
+    .pill { font-size: 0.78rem; }
+  }
+
+  @media (max-width: 380px) {
+    .temp-today-grid { grid-template-columns: 1fr 1fr; }
+    .hero-cards { flex-direction: column; }
+    .hero-card { flex: none; width: 100%; }
+  }
+
+  /* ===== HERO DROPDOWN ===== */
+  .hero-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 0 0 12px 12px;
+    min-width: 320px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+    z-index: 50;
+    animation: fadeInDown 0.2s ease;
+  }
+  .hero-dropdown.open { display: block; }
+  @keyframes fadeInDown {
+    from { opacity:0; transform: translateX(-50%) translateY(-8px); }
+    to   { opacity:1; transform: translateX(-50%) translateY(0); }
+  }
+  .hero-drop-item {
+    display: block;
+    width: 100%;
+    padding: 1.1rem 1.6rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--light);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hero-drop-item:last-child { border-bottom: none; }
+  .hero-drop-item:hover { background: rgba(232,160,32,0.15); color: var(--accent); padding-left: 2rem; }
+
+  /* ===== RINTRACCIABILITA NEW UI ===== */
+  .registrazioni-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem; }
+
+  .reg-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    animation: fadeInUp 0.3s ease both;
+  }
+
+  .reg-item-info { flex: 1; min-width: 0; }
+  .reg-item-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .reg-item-sub { font-size: 0.78rem; color: var(--gray); }
+  .reg-item-badges { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .reg-item-del {
+    background: none;
+    border: 1px solid rgba(231,76,60,0.3);
+    color: var(--red);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .reg-item-del:hover { background: var(--red); color: white; }
+
+  .add-reg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1rem;
+    background: rgba(232,160,32,0.06);
+    border: 2px dashed rgba(232,160,32,0.3);
+    border-radius: 10px;
+    color: var(--accent);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .add-reg-btn:hover { background: rgba(232,160,32,0.12); border-color: var(--accent); }
+  .add-reg-btn .plus { font-size: 1.6rem; line-height: 1; }
+
+  /* Form panel sliding */
+  .reg-form-panel {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .reg-form-panel.open { display: block; animation: fadeInUp 0.25s ease; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray);
+  }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ===== PULIZIE MODULE ===== */
+  .pulizie-hub {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .pulizie-hub-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .pulizie-hub-card:hover {
+    background: rgba(232,160,32,0.07);
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  .pulizie-hub-card .phc-icon { font-size: 2.2rem; }
+  .pulizie-hub-card .phc-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .pulizie-hub-card .phc-desc { font-size: 0.83rem; color: var(--gray); line-height: 1.5; }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--gray);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 0.5rem 1rem;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1.5rem;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Checklist giornaliera */
+  .pulizia-check-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pulizia-check-item:hover { border-color: rgba(232,160,32,0.3); }
+  .pulizia-check-item.done { background: rgba(46,204,113,0.05); border-color: rgba(46,204,113,0.2); }
+
+  .pci-checkbox {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .pulizia-check-item.done .pci-checkbox {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .pci-info { flex: 1; min-width: 0; }
+  .pci-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--white);
+  }
+  .pulizia-check-item.done .pci-name {
+    text-decoration: line-through;
+    color: var(--gray);
+  }
+  .pci-meta { font-size: 0.75rem; color: var(--gray); margin-top: 0.2rem; }
+
+  .pci-ora {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  .pulizie-progress {
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    height: 6px;
+    margin: 0.5rem 0 1.2rem;
+    overflow: hidden;
+  }
+  .pulizie-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #27ae60);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+  .pulizie-stats {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 0.3rem;
+  }
+
+  /* Calendario mensile */
+  .mese-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 960px;
+  }
+
+  .mese-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .mese-card-header {
+    background: rgba(232,160,32,0.08);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mese-card-header .mese-nome {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .mese-card-body { padding: 0.8rem 1rem; }
+
+  .mese-attivita-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.85rem;
+  }
+  .mese-attivita-item:last-child { border-bottom: none; }
+  .mese-attivita-item .mai-name { color: var(--light); }
+  .mese-attivita-item .mai-orario {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+  }
+
+  .add-attivita-form {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(232,160,32,0.3);
+    border-radius: 8px;
+    padding: 0.8rem;
+    margin-top: 0.8rem;
+    display: none;
+  }
+  .add-attivita-form.open { display: block; }
+
+  @media (max-width: 768px) {
+    .pulizie-hub { grid-template-columns: 1fr; }
+    .mese-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== MENSILE DETAIL TABLE ===== */
+  .mese-detail-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+  .mese-detail-table th {
+    background:rgba(232,160,32,0.08);
+    color:var(--accent);
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    letter-spacing:1px;
+    padding:0.5rem 0.7rem;
+    text-align:left;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  .mese-detail-table td {
+    padding:0.45rem 0.7rem;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    vertical-align:middle;
+  }
+  .mese-detail-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .day-cell {
+    text-align:center;
+    width:30px;
+    font-size:0.72rem;
+    padding:0.3rem 0.2rem !important;
+  }
+  .day-done { color:var(--green); font-weight:700; }
+  .day-miss { color:rgba(255,255,255,0.15); }
+  .day-future { color:rgba(255,255,255,0.1); }
+  .day-skip { color:rgba(255,255,255,0.06); }
+  .mese-card.expanded .mese-card-body { padding:0; }
+  .mese-toggle-btn {
+    background:none; border:none; color:var(--accent);
+    font-family:'Barlow Condensed',sans-serif; font-size:0.82rem;
+    font-weight:700; letter-spacing:1px; cursor:pointer;
+    padding:0.4rem 0.8rem; border-radius:6px;
+    transition:background 0.2s;
+  }
+  .mese-toggle-btn:hover { background:rgba(232,160,32,0.1); }
+
+  /* ===== GIORNO PER GIORNO ===== */
+  .mese-giorni-list {
+    border-top: 1px solid var(--border);
+  }
+
+  .giorno-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 52px;
+  }
+  .giorno-row:hover { background: rgba(255,255,255,0.03) !important; }
+
+  .giorno-row-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 36px;
+    flex-shrink: 0;
+  }
+  .giorno-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--white);
+  }
+  .giorno-dow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .giorno-row-center {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .giorno-row-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .today-badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+  }
+
+  .weekend-badge {
+    background: rgba(232,160,32,0.12);
+    color: var(--accent);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    border: 1px solid rgba(232,160,32,0.2);
+  }
+
+  .attiv-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 5px;
+    margin: 0.1rem;
+    white-space: nowrap;
+  }
+  .done-chip {
+    background: rgba(46,204,113,0.12);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.2);
+  }
+  .miss-chip {
+    background: rgba(231,76,60,0.08);
+    color: rgba(231,76,60,0.6);
+    border: 1px solid rgba(231,76,60,0.15);
+    text-decoration: line-through;
+  }
+
+  .day-badge-ok {
+    background: rgba(46,204,113,0.15);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.25);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .day-badge-miss {
+    background: rgba(231,76,60,0.1);
+    color: var(--red);
+    border: 1px solid rgba(231,76,60,0.2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .day-badge-partial {
+    background: rgba(232,160,32,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(232,160,32,0.2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* Expanded day detail */
+  .giorno-detail {
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .giorno-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 1rem 0.7rem 3.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    gap: 1rem;
+  }
+  .giorno-detail-row:last-child { border-bottom: none; }
+  .detail-done { background: rgba(46,204,113,0.03); }
+  .detail-miss { background: rgba(231,76,60,0.02); }
+  .detail-future { opacity: 0.5; }
+
+  .detail-ora-badge {
+    background: rgba(232,160,32,0.12);
+    color: var(--accent);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid rgba(232,160,32,0.2);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .giorno-attivita-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    align-items: center;
+  }
+
+  /* Mese card full width when expanded */
+  .mese-card { break-inside: avoid; }
+  .mese-grid { grid-template-columns: 1fr !important; max-width: 900px; }
+
+  @media (max-width:768px) {
+    .giorno-row { padding: 0.6rem 0.8rem; gap:0.5rem; }
+    .giorno-detail-row { padding: 0.6rem 0.8rem 0.6rem 3rem; }
+    .attiv-chip { font-size:0.7rem; }
+    .giorno-attivita-preview { gap:0.15rem; }
+  }
+
+  /* ===== CHIUSURA ===== */
+  .closed-badge {
+    background: rgba(150,150,150,0.15);
+    color: var(--gray);
+    border: 1px solid rgba(150,150,150,0.2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.6rem;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
+  }
+  .day-badge-closed {
+    background: rgba(150,150,150,0.1);
+    color: var(--gray);
+    border: 1px solid rgba(150,150,150,0.2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .dow-day-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 0.4rem;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--gray);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .dow-day-btn.selected {
+    background: rgba(231,76,60,0.15);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .dow-day-btn .dow-num {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: inherit;
+    opacity: 0.7;
+    margin-top: 0.1rem;
+  }
+  .chiusura-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.8rem;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--light);
+  }
+  .chiusura-pill .cp-motivo { font-size:0.75rem; color:var(--gray); margin-top:0.1rem; }
+  .chiusura-pill .cp-del {
+    background:none; border:1px solid rgba(231,76,60,0.3); color:var(--red);
+    border-radius:5px; cursor:pointer; padding:0.2rem 0.6rem; font-size:0.8rem;
+  }
+
+  /* ===== DOCUMENTI ===== */
+  .doc-category-header {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gray);
+    text-transform: uppercase;
+    padding: 0.8rem 0 0.4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.6rem;
+    margin-top: 1rem;
+  }
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 0.5rem;
+    transition: border-color 0.2s;
+  }
+  .doc-item:hover { border-color: rgba(232,160,32,0.3); }
+  .doc-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+  }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .doc-meta { font-size: 0.75rem; color: var(--gray); margin-top: 0.15rem; }
+  .doc-scadenza-ok  { color: var(--green); }
+  .doc-scadenza-warn{ color: #f39c12; }
+  .doc-scadenza-exp { color: var(--red); }
+  .doc-actions { display:flex; gap:0.4rem; flex-shrink:0; }
+  .doc-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+  }
+
+  /* ===== DERATTIZZAZIONE ===== */
+  .derat-timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+  .derat-timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .derat-event {
+    position: relative;
+    padding: 1rem 1rem 1rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 0.8rem;
+    transition: border-color 0.2s;
+  }
+  .derat-event:hover { border-color: rgba(232,160,32,0.3); }
+  .derat-event::before {
+    content: '';
+    position: absolute;
+    left: -1.65rem;
+    top: 1.1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--navy);
+    z-index: 1;
+  }
+  .derat-event.planned::before { background: var(--gray); }
+  .derat-event.expired::before { background: var(--red); }
+  .derat-event-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .derat-event-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .derat-event-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+  }
+  .derat-field { font-size: 0.8rem; color: var(--gray); }
+  .derat-field strong { color: var(--light); display:block; margin-bottom:0.1rem; }
+
+  .area-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(26,64,128,0.3);
+    border: 1px solid rgba(26,64,128,0.5);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.82rem;
+    color: var(--light);
+    margin: 0.2rem;
+  }
+  .area-pill .del-area {
+    color: var(--red); cursor:pointer; font-weight:700; line-height:1;
+  }
+
+  @media(max-width:768px) {
+    .derat-event-body { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ===== HERO MODULES LAYOUT ===== */
+  .hero-modules-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: 720px;
+    margin-top: 2.5rem;
+    animation: fadeInUp 0.8s ease 0.65s both;
+  }
+  .hero-modules {
+    display: grid;
+    gap: 0.7rem;
+    width: 100%;
+  }
+  .hero-modules-row1 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .hero-modules-row2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: calc(50% + 0.35rem);
+  }
+
+  /* ===== HERO COMPANY NAME ===== */
+  .hero-company {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 2.2rem;
+    animation: fadeInUp 0.8s ease 0.9s both;
+    width: 100%;
+    max-width: 600px;
+    justify-content: center;
+  }
+  .hero-company-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232,160,32,0.3), transparent);
+  }
+  .hero-company-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: transparent;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 40%, rgba(232,160,32,0.6) 70%, var(--accent) 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: companyShimmer 3s ease 1.2s infinite alternate,
+               companyGlow 3s ease 1.2s infinite alternate;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+  }
+  @keyframes companyShimmer {
+    0%   { background-position: 100% center; letter-spacing: 4px; }
+    100% { background-position: 0% center;   letter-spacing: 6px; }
+  }
+  @keyframes companyGlow {
+    0%   { text-shadow: none; }
+    100% { text-shadow: 0 0 30px rgba(232,160,32,0.4), 0 0 60px rgba(232,160,32,0.1); }
+  }
+
+  @media(max-width: 768px) {
+    .hero-modules-row1 { grid-template-columns: repeat(2, 1fr); }
+    .hero-modules-row2 { grid-template-columns: repeat(2, 1fr); max-width: 100%; }
+    .hero-company-name { font-size: 1rem; letter-spacing: 2px; max-width: 260px; }
+    .hero-company { gap: 0.7rem; }
+  }
+
+  /* ===== LOGIN ===== */
+  #loginOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem;
+  }
+  #loginOverlay .login-box {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: fadeInUp 0.5s ease both;
+  }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .login-logo .ll-icon {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,160,32,0.4);
+    line-height: 1;
+  }
+  .login-logo .ll-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: var(--gray);
+    margin-top: 0.3rem;
+    text-transform: uppercase;
+  }
+  .login-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 1.8rem;
+    text-transform: uppercase;
+  }
+  .login-error {
+    background: rgba(231,76,60,0.12);
+    border: 1px solid rgba(231,76,60,0.3);
+    color: #e74c3c;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    display: none;
+  }
+  .login-footer {
+    text-align: center;
+    margin-top: 1.2rem;
+    font-size: 0.75rem;
+    color: var(--gray);
+    letter-spacing: 1px;
+  }
+
+  /* When logged out: hide header nav items and bottom nav */
+  body.logged-out header nav .nav-btn:not(#btnLoginNav),
+  body.logged-out header nav .dropdown-wrapper,
+  body.logged-out header nav .date-display,
+  body.logged-out .bottom-nav,
+  body.logged-out .dropdown-menu-mobile {
+    display: none !important;
+  }
+  @keyframes loginShake {
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
+  }
+
+  /* ===== BOLLA UPLOAD ===== */
+  .bolla-upload-area {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: border-color 0.2s;
+  }
+  .bolla-upload-area:hover { border-color: rgba(232,160,32,0.3); }
+  .bolla-options {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .bolla-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--light);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .bolla-btn:hover {
+    background: rgba(232,160,32,0.08);
+    border-color: rgba(232,160,32,0.3);
+    color: var(--accent);
+  }
+  .bolla-btn span { font-size: 1.1rem; }
+
+  /* Bolla in storico / card */
+  .bolla-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid rgba(232,160,32,0.3);
+    border-radius: 5px;
+    padding: 0.2rem 0.6rem;
+    transition: all 0.2s;
+  }
+  .bolla-link:hover { background: rgba(232,160,32,0.08); }
+
+  /* ===== SCANNER STRIP ===== */
+  .scan-strip {
+    margin: 1.5rem 0 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.025);
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    transition: border-color 0.3s;
+  }
+  .scan-strip:hover { border-color: rgba(232,160,32,0.2); }
+  .scan-strip-left {
+    display: flex; align-items: center;
+    gap: 1.2rem; padding: 1.2rem 1.5rem; flex: 1;
+  }
+  .scan-strip-right {
+    display: flex; align-items: center;
+    gap: 0.8rem; padding: 0.8rem 1.5rem 0.8rem 0; flex-shrink: 0;
+  }
+  .scan-barcode-deco {
+    width: 70px; height: 36px; color: var(--accent);
+    flex-shrink: 0; opacity: 0.7;
+    animation: barcodeFlicker 4s ease-in-out infinite;
+  }
+  @keyframes barcodeFlicker { 0%,100%{opacity:.7} 50%{opacity:.4} }
+  .scan-strip-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem; font-weight: 700; letter-spacing: 3px;
+    color: var(--white); text-transform: uppercase; margin-bottom: 0.2rem;
+  }
+  .scan-strip-sub { font-size: 0.78rem; color: var(--gray); line-height: 1.5; max-width: 380px; }
+  .scan-strip-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.2rem; background: var(--accent); color: var(--navy);
+    border: none; border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.88rem;
+    font-weight: 800; letter-spacing: 2px; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .scan-strip-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* ===== SCANNER MODAL ===== */
+  .scanner-modal {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: #000; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .scanner-modal.open { display: flex; }
+  .scanner-modal video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .scanner-modal-ui {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  /* Top bar */
+  .scanner-modal-top {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 3rem 1.5rem 1rem; pointer-events: all;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+  }
+  .scanner-modal-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 700; letter-spacing: 3px;
+    color: #fff; text-transform: uppercase;
+  }
+  .scanner-modal-close {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; border-radius: 8px; padding: 0.4rem 1rem;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem;
+    letter-spacing: 1px; cursor: pointer; pointer-events: all;
+  }
+  /* Viewfinder frame */
+  .scanner-viewfinder {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .scanner-vf-frame {
+    width: min(72vw, 320px); height: min(45vw, 200px);
+    position: relative; border-radius: 10px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+  }
+  .scanner-vf-frame::before, .scanner-vf-frame::after,
+  .scanner-vf-inner::before, .scanner-vf-inner::after {
+    content: ''; position: absolute; width: 22px; height: 22px;
+    border-color: var(--accent); border-style: solid;
+  }
+  .scanner-vf-frame::before  { top:-2px;    left:-2px;  border-width: 3px 0 0 3px; border-radius: 7px 0 0 0; }
+  .scanner-vf-frame::after   { top:-2px;    right:-2px; border-width: 3px 3px 0 0; border-radius: 0 7px 0 0; }
+  .scanner-vf-inner::before  { bottom:-2px; left:-2px;  border-width: 0 0 3px 3px; border-radius: 0 0 0 7px; }
+  .scanner-vf-inner::after   { bottom:-2px; right:-2px; border-width: 0 3px 3px 0; border-radius: 0 0 7px 0; }
+  .scanner-vf-laser {
+    position: absolute; left: 0; right: 0; height: 2px; top: 50%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: laserMove 2s ease-in-out infinite;
+  }
+  @keyframes laserMove { 0%{top:8%} 50%{top:88%} 100%{top:8%} }
+  .scanner-vf-hint {
+    position: absolute; bottom: -2rem; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 0.75rem; color: rgba(255,255,255,0.6);
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px;
+  }
+  /* Bottom bar - manual + shutter */
+  .scanner-modal-bottom {
+    width: 100%; padding: 1rem 1.5rem 3rem;
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    pointer-events: all;
+  }
+  /* Hidden file input, triggered by shutter button */
+  #scanFileInput { display: none; }
+  .scanner-shutter {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 3px solid rgba(255,255,255,0.5);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; position: relative;
+  }
+  .scanner-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
+  .scanner-shutter-inner {
+    width: 46px; height: 46px; border-radius: 50%; background: #fff;
+  }
+  .scanner-manual-row {
+    display: flex; gap: 0.5rem; width: 100%; max-width: 320px;
+  }
+  .scanner-manual-input {
+    flex: 1; background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+    padding: 0.55rem 0.9rem; color: #fff; font-size: 0.9rem; outline: none;
+    font-family: 'Barlow', sans-serif;
+  }
+  .scanner-manual-input::placeholder { color: rgba(255,255,255,0.4); }
+  .scanner-manual-go {
+    background: var(--accent); color: var(--navy); border: none;
+    border-radius: 8px; padding: 0.55rem 1rem; font-weight: 800;
+    font-family: 'Barlow Condensed', sans-serif; cursor: pointer; font-size: 0.9rem;
+  }
+
+  /* Result card */
+  .scan-result-card {
+    width: 100%; border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 1.2rem 1.5rem; display: none;
+    animation: fadeInUp 0.35s ease both;
+  }
+  .scan-result-card.visible { display: block; }
+  .scan-result-inner { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+  .scan-result-img {
+    width: 64px; height: 64px; border-radius: 8px; object-fit: contain;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0; padding: 4px;
+  }
+  .scan-result-placeholder {
+    width: 64px; height: 64px; border-radius: 8px;
+    background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; flex-shrink: 0;
+  }
+  .scan-result-brand { font-size: .7rem; color: var(--accent); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: .2rem; }
+  .scan-result-name  { font-family: 'Barlow Condensed',sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--white); line-height: 1.2; margin-bottom: .2rem; }
+  .scan-result-code  { font-size: .7rem; color: var(--gray); font-family: monospace; }
+  .scan-result-grid  { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: .4rem; margin-bottom: 1rem; }
+  .scan-result-field { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 6px; padding: .45rem .6rem; }
+  .scan-result-field strong { display: block; font-size: .6rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: .15rem; }
+  .scan-result-field span   { font-size: .8rem; color: var(--light); font-weight: 500; }
+  .scan-loading { width: 100%; border-top: 1px solid rgba(255,255,255,.07); padding: 1rem 1.5rem; display: none; align-items: center; gap: .7rem; color: var(--gray); font-size: .85rem; }
+  .scan-loading.visible { display: flex; }
+  .scan-spinner  { width: 18px; height: 18px; border: 2px solid rgba(232,160,32,.2); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
+  .scan-error { width: 100%; border-top: 1px solid rgba(255,255,255,.07); padding: .7rem 1.5rem; display: none; align-items: center; gap: .5rem; color: #e74c3c; font-size: .82rem; }
+  .scan-error.visible { display: flex; }
+
+  @media(max-width:768px) {
+    .scan-strip { border-radius: 12px; flex-direction: column; text-align: center; }
+    .scan-strip-left { flex-direction: column; align-items: center; padding: 1.4rem 1.2rem 0.6rem; gap: 0.8rem; width: 100%; }
+    .scan-strip-right { padding: 0.8rem 1.2rem 1.2rem; width: 100%; justify-content: center; }
+    .scan-strip-sub { max-width: 280px; }
+    .scan-barcode-deco { width: 64px; height: 32px; }
+    .scan-result-card, .scan-loading, .scan-error { padding: 1rem; }
+    .scan-result-grid { grid-template-columns: 1fr 1fr; }
+  }}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+  <!-- Animated background -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 40%, rgba(26,64,128,0.4) 0%, transparent 70%);pointer-events:none;"></div>
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(232,160,32,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,160,32,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);"></div>
+
+  <div class="login-box" style="position:relative;z-index:1;">
+    <div class="login-logo">
+      <div class="ll-icon">PF</div>
+      <div class="ll-sub">GESTIONALE</div>
+    </div>
+    <div class="login-title">Accesso al Sistema</div>
+    <div class="login-error" id="loginError">⚠️ Credenziali errate. Riprova.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Inserisci username" autocomplete="username"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="form-group" style="margin-top:1rem;">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Inserisci password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1.5rem;font-size:1rem;padding:0.9rem;letter-spacing:2px;" onclick="doLogin()">
+      🔐 ACCEDI
+    </button>
+    <div class="login-footer">PF GESTIONALE · SISTEMA PROFESSIONALE</div>
+  </div>
+</div>
+
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">PF</div>
+      <div class="logo-text"><span>PF</span> GESTIONALE</div>
+    </div>
+
+    <nav>
+      <button class="nav-btn" onclick="showPage('home')">🏠 HOME</button>
+      <button class="nav-btn" onclick="showPage('documenti')">📁 DOCUMENTI</button>
+
+      <div class="dropdown-wrapper" id="menuWrapper">
+        <button class="nav-btn" onclick="toggleMenu()" id="menuBtn">📋 MODULI ▾</button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button class="dropdown-item" onclick="showPage('temperature'); toggleMenu()">🌡️ Scheda Controllo Temperature</button>
+          <button class="dropdown-item" onclick="showPage('rintracciabilita'); toggleMenu()">📦 Rintracciabilità Merci in Arrivo</button>
+          <button class="dropdown-item" onclick="showPage('pulizie'); toggleMenu()">🧹 Pulizie</button>
+          <button class="dropdown-item" onclick="showPage('derattizzazione'); toggleMenu()">🐀 Piano di Derattizzazione</button>
+        </div>
+      </div>
+
+      <button class="nav-btn" onclick="showPage('admin')">⚙️ ADMIN</button>
+      <div class="date-display" id="dateDisplay"></div>
+      <button class="nav-btn" id="btnLoginNav" onclick="doLogout()" style="color:var(--gray);font-size:0.8rem;">🔒 ESCI</button>
+    </nav>
+  </div>
+</header>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <!-- Animated background layers -->
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-grid"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-scanline"></div>
+
+    <!-- Content -->
+    <div class="hero-content">
+      <h1>
+        <span class="gold">PF</span> GESTIONALE
+        <span class="line2">CONTROLLO · QUALITÀ · TRACCIABILITÀ</span>
+      </h1>
+
+      <p class="hero-sub" id="heroTypewriter"></p>
+
+      <!-- Live stats -->
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="heroStatTemp">—</div>
+          <div class="hero-stat-label">Rilevazioni Temp.</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="heroStatMerci">—</div>
+          <div class="hero-stat-label">Merci Tracciate</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="heroStatPulizie">—</div>
+          <div class="hero-stat-label">Pulizie Oggi</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="heroStatDoc">—</div>
+          <div class="hero-stat-label">Documenti</div>
+        </div>
+      </div>
+
+      <!-- Module quick access: 4 top row + 2 centered bottom row -->
+      <div class="hero-modules-wrap">
+        <div class="hero-modules hero-modules-row1">
+          <div class="hero-module-btn" onclick="showPage('temperature')">
+            <span class="hm-icon">🌡️</span>Temperature
+          </div>
+          <div class="hero-module-btn" onclick="showPage('rintracciabilita')">
+            <span class="hm-icon">📦</span>Rintracciabilità
+          </div>
+          <div class="hero-module-btn" onclick="showPage('pulizie')">
+            <span class="hm-icon">🧹</span>Pulizie
+          </div>
+          <div class="hero-module-btn" onclick="showPage('derattizzazione')">
+            <span class="hm-icon">🐀</span>Derattizzazione
+          </div>
+        </div>
+        <div class="hero-modules hero-modules-row2">
+          <div class="hero-module-btn" onclick="showPage('documenti')">
+            <span class="hm-icon">📁</span>Documenti
+          </div>
+          <div class="hero-module-btn" onclick="showPage('admin')" style="border-style:dashed;opacity:0.6;">
+            <span class="hm-icon">⚙️</span>Admin
+          </div>
+        </div>
+      </div>
+
+      <!-- Company name animated -->
+      <div class="hero-company" id="heroCompany" style="display:none;">
+        <div class="hero-company-line"></div>
+        <div class="hero-company-name" id="heroCompanyName"></div>
+        <div class="hero-company-line"></div>
+      </div>
+
+      <!-- ===== SCANNER STRIP ===== -->
+      <div class="scan-strip">
+        <div class="scan-strip-left">
+          <svg class="scan-barcode-deco" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0"  y="0" width="4"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="7"  y="0" width="2"  height="60" fill="currentColor" opacity="0.5"/>
+            <rect x="11" y="0" width="6"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="20" y="0" width="2"  height="60" fill="currentColor" opacity="0.7"/>
+            <rect x="24" y="0" width="4"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="35" y="0" width="8"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="46" y="0" width="2"  height="60" fill="currentColor" opacity="0.6"/>
+            <rect x="51" y="0" width="4"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="63" y="0" width="6"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="77" y="0" width="4"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="89" y="0" width="8"  height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="105" y="0" width="4" height="60" fill="currentColor" opacity="0.9"/>
+            <rect x="116" y="0" width="4" height="60" fill="currentColor" opacity="0.9"/>
+          </svg>
+          <div>
+            <div class="scan-strip-label">SCAN &amp; IDENTIFICA</div>
+            <div class="scan-strip-sub">Inquadra il codice a barre — il sistema identifica automaticamente nome, marca, allergeni e valori nutrizionali.</div>
+          </div>
+        </div>
+        <div class="scan-strip-right">
+          <button class="scan-strip-btn" onclick="aprireScannerModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            SCANSIONA
+          </button>
+        </div>
+        <!-- Result / loading / error -->
+        <div class="scan-loading" id="scanLoading"><div class="scan-spinner"></div> Ricerca prodotto...</div>
+        <div class="scan-error" id="scanError">⚠️ <span id="scanErrorText"></span></div>
+        <div class="scan-result-card" id="scanResult">
+          <div class="scan-result-inner">
+            <div id="scanResultImg"></div>
+            <div>
+              <div class="scan-result-brand" id="scanResultBrand"></div>
+              <div class="scan-result-name" id="scanResultName"></div>
+              <div class="scan-result-code" id="scanResultCode"></div>
+            </div>
+          </div>
+          <div class="scan-result-grid" id="scanResultGrid"></div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="scanImportaInRint()">📦 IMPORTA IN RINTRACCIABILITÀ</button>
+            <button class="btn btn-outline btn-sm" onclick="scanReset()">🔄 NUOVO SCAN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- TEMPERATURE PAGE -->
+<div id="page-temperature" class="page">
+  <div class="section-header">
+    <h2>🌡️ SCHEDA CONTROLLO TEMPERATURE</h2>
+    <span class="badge" id="tempDateBadge"></span>
+  </div>
+
+  <div class="info-box">
+    💡 <strong>Come funziona:</strong> Inserisci le temperature una volta — il sistema le memorizza come riferimento e le propone automaticamente nei giorni successivi. Verifica e conferma con un click, oppure correggi se necessario.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTempTab('oggi', this)">📅 OGGI</button>
+    <button class="tab-btn" onclick="switchTempTab('storico', this)">📊 STORICO</button>
+    <button class="tab-btn" onclick="switchTempTab('impostazioni', this)">⚙️ IMPOSTAZIONI</button>
+  </div>
+
+  <!-- TAB OGGI -->
+  <div id="tempTab-oggi">
+    <div class="card">
+      <h3>📍 Rilevazioni di Oggi — <span id="todayDateLabel"></span></h3>
+      <div class="temp-today-grid" id="tempGrid"></div>
+      <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <div class="form-group" style="flex:1; min-width:200px;">
+          <label>Operatore</label>
+          <input type="text" id="tempOperatore" placeholder="Nome operatore" value="Mario Rossi">
+        </div>
+        <div class="form-group" style="min-width:200px;">
+          <label>Ora rilevazione</label>
+          <input type="time" id="tempOra">
+        </div>
+        <div class="form-group" style="flex:2; min-width:200px;">
+          <label>Note</label>
+          <input type="text" id="tempNote" placeholder="Eventuali anomalie...">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="salvaTemperature()">✅ SALVA RILEVAZIONE</button>
+        <button class="btn btn-outline" onclick="autoFillTemperature()">🔄 AUTO-COMPILA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB STORICO -->
+  <div id="tempTab-storico" style="display:none;">
+    <div class="card">
+      <h3>📊 Storico Rilevazioni</h3>
+      <div class="table-wrapper">
+        <table id="tempStoricoTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Ora</th>
+              <th>Frigo 1</th>
+              <th>Frigo 2</th>
+              <th>Freezer</th>
+              <th>Cella Fresca</th>
+              <th>Temp. Amb.</th>
+              <th>Operatore</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="tempStoricoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB IMPOSTAZIONI -->
+  <div id="tempTab-impostazioni" style="display:none;">
+    <div class="card">
+      <h3>⚙️ Valori di Riferimento (Limiti di Legge)</h3>
+      <p style="color:var(--gray); font-size:0.88rem; margin-bottom:1rem;">Imposta i range accettabili per ogni apparecchiatura. Il sistema segnalerà in rosso le temperature fuori range.</p>
+      <div id="tempLimitsGrid"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="salvaLimiti()">💾 SALVA IMPOSTAZIONI</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RINTRACCIABILITÀ PAGE -->
+<div id="page-rintracciabilita" class="page">
+  <div class="section-header">
+    <h2>📦 RINTRACCIABILITÀ MERCI IN ARRIVO</h2>
+    <span class="badge" id="rDateBadge"></span>
+  </div>
+
+  <!-- Lista articoli già registrati oggi -->
+  <div id="registrazioniOggi"></div>
+
+  <!-- Form panel (nascosto, appare al click +) -->
+  <div class="reg-form-panel" id="regFormPanel">
+    <h3 style="font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:700; color:var(--accent); margin-bottom:1.2rem; letter-spacing:1px;">
+      ➕ NUOVA REGISTRAZIONE
+    </h3>
+
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--gray); letter-spacing:1px; text-transform:uppercase; margin-bottom:0.6rem;">🏭 FORNITORE</div>
+      <div id="fornitoriButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;"></div>
+      <input type="text" id="rFornitoreInput" placeholder="Fornitore selezionato..." readonly
+        style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.9rem;color:var(--white);font-family:'Barlow',sans-serif;font-size:1rem;width:100%;max-width:300px;margin-top:0.4rem;">
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--gray); letter-spacing:1px; text-transform:uppercase; margin-bottom:0.6rem;">📦 TIPO MERCE (seleziona uno o più)</div>
+      <div id="merciButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+      <div style="margin-top:0.6rem; display:flex; flex-wrap:wrap; gap:0.5rem;" id="merciSelezionate"></div>
+    </div>
+
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="form-group">
+        <label>Data Arrivo</label>
+        <input type="date" id="rData">
+      </div>
+      <div class="form-group">
+        <label>Ora Arrivo</label>
+        <input type="time" id="rOra">
+      </div>
+      <div class="form-group">
+        <label>N° DDT / Bolla</label>
+        <input type="text" id="rDDT" placeholder="Es: DDT-2024-0123">
+      </div>
+      <div class="form-group">
+        <label>Lotto</label>
+        <input type="text" id="rLotto" placeholder="Numero di lotto">
+      </div>
+      <div class="form-group">
+        <label>Scadenza</label>
+        <input type="date" id="rScadenza">
+      </div>
+      <div class="form-group">
+        <label>Temp. Ricevimento (°C)</label>
+        <input type="number" id="rTemp" placeholder="Es: 4" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>Quantità / Peso</label>
+        <input type="text" id="rQuantita" placeholder="Es: 50 kg">
+      </div>
+      <div class="form-group">
+        <label>Operatore</label>
+        <input type="text" id="rOperatore" placeholder="Nome operatore" value="Mario Rossi">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>Conformità</label>
+      <select id="rConformita">
+        <option value="conforme">✅ Conforme</option>
+        <option value="non_conforme">❌ Non Conforme</option>
+        <option value="condizionale">⚠️ Accettata con riserva</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem;">
+      <label>Note</label>
+      <input type="text" id="rNote" placeholder="Eventuali osservazioni...">
+    </div>
+
+    <!-- BOLLA UPLOAD -->
+    <div class="form-group" style="margin-bottom:1.2rem;">
+      <label>📎 Allega Bolla / DDT</label>
+      <div class="bolla-upload-area" id="bollaUploadArea">
+        <div class="bolla-options">
+          <label class="bolla-btn" for="bollaFile">
+            <span>📄</span> Carica File
+            <input type="file" id="bollaFile" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none;" onchange="handleBollaFile(this)">
+          </label>
+          <button type="button" class="bolla-btn" id="bollaCameraBtn" onclick="apriFotocamera()">
+            <span>📷</span> Scatta Foto
+          </button>
+        </div>
+        <!-- Preview area -->
+        <div id="bollaPreview" style="display:none; margin-top:0.8rem;">
+          <div style="display:flex;align-items:center;gap:0.8rem;padding:0.7rem 1rem;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.2);border-radius:8px;">
+            <span id="bollaPreviewIcon" style="font-size:1.5rem;">📄</span>
+            <div style="flex:1;min-width:0;">
+              <div id="bollaPreviewName" style="font-size:0.85rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              <div id="bollaPreviewSize" style="font-size:0.72rem;color:var(--gray);"></div>
+            </div>
+            <button onclick="rimuoviBolla()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:0.2rem;">✕</button>
+          </div>
+          <img id="bollaPreviewImg" src="" alt="Anteprima bolla"
+            style="display:none;max-width:100%;max-height:200px;border-radius:8px;margin-top:0.6rem;border:1px solid var(--border);object-fit:contain;">
+        </div>
+        <!-- Camera stream -->
+        <div id="bollaCameraArea" style="display:none;margin-top:0.8rem;">
+          <video id="bollaVideo" autoplay playsinline style="width:100%;max-height:240px;border-radius:8px;background:#000;"></video>
+          <div style="display:flex;gap:0.6rem;margin-top:0.6rem;">
+            <button class="btn btn-primary btn-sm" onclick="scattaFoto()" style="flex:1;">📸 SCATTA</button>
+            <button class="btn btn-outline btn-sm" onclick="chiudiFotocamera()" style="flex:1;">✕ ANNULLA</button>
+          </div>
+          <canvas id="bollaCanvas" style="display:none;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="salvaRintracciabilita()">✅ REGISTRA MERCE</button>
+      <button class="btn btn-outline" onclick="chiudiFormReg()">✖ ANNULLA</button>
+    </div>
+  </div>
+
+  <!-- Pulsante + aggiungi -->
+  <button class="add-reg-btn" id="addRegBtn" onclick="apriFormReg()">
+    <span class="plus">+</span> AGGIUNGI MERCE IN ARRIVO
+  </button>
+
+  <!-- Storico full (tab nascosto, accessibile da sezione separata) -->
+  <div id="rStoricoSection" style="display:none;">
+    <div class="card">
+      <h3>📋 Tutte le Registrazioni</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Fornitore</th>
+              <th>Merce</th>
+              <th>DDT</th>
+              <th>Lotto</th>
+              <th>Temp °C</th>
+              <th>Operatore</th>
+              <th>Conformità</th>
+            </tr>
+          </thead>
+          <tbody id="rStoricoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:1rem;">
+    <button class="btn btn-outline" style="font-size:0.85rem;" onclick="toggleRStorico(this)">
+      📋 MOSTRA STORICO COMPLETO
+    </button>
+  </div>
+</div>
+
+
+<!-- PULIZIE HUB PAGE -->
+<div id="page-pulizie" class="page">
+  <div class="section-header">
+    <h2>🧹 PULIZIE</h2>
+    <span class="badge">MODULO</span>
+  </div>
+  <p style="color:var(--gray); font-size:0.9rem; margin-bottom:1.5rem;">Seleziona la sezione che vuoi gestire.</p>
+  <div class="pulizie-hub">
+    <div class="pulizie-hub-card" onclick="showSubPage('pulizie-giornaliera')">
+      <div class="phc-icon">✅</div>
+      <div class="phc-title">Scheda Controllo Pulizie</div>
+      <div class="phc-desc">Checklist giornaliera con orario di esecuzione. Spunta le attività completate durante la giornata.</div>
+    </div>
+    <div class="pulizie-hub-card" onclick="showSubPage('pulizie-mensile')">
+      <div class="phc-icon">📅</div>
+      <div class="phc-title">Scheda Pulizie con Orario — Mensile</div>
+      <div class="phc-desc">Elenco delle attività di pulizia pianificate mese per mese, con orari e frequenze.</div>
+    </div>
+    <div class="pulizie-hub-card" onclick="showSubPage('pulizie-chiusura')">
+      <div class="phc-icon">🔒</div>
+      <div class="phc-title">Giorni di Chiusura</div>
+      <div class="phc-desc">Imposta i giorni fissi e le date specifiche di chiusura. Quei giorni non verranno conteggiati come mancanze.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PULIZIE GIORNALIERA PAGE -->
+<div id="page-pulizie-giornaliera" class="page">
+  <button class="back-btn" onclick="showPage('pulizie')">← PULIZIE</button>
+  <div class="section-header">
+    <h2>✅ SCHEDA CONTROLLO PULIZIE</h2>
+    <span class="badge" id="pGiornDateBadge"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchPGTab('oggi', this)">📅 OGGI</button>
+    <button class="tab-btn" onclick="switchPGTab('storico', this)">📊 STORICO</button>
+    <button class="tab-btn" onclick="switchPGTab('gestione', this)">⚙️ ATTIVITÀ</button>
+  </div>
+
+  <!-- TAB OGGI -->
+  <div id="pGTab-oggi">
+    <div class="card">
+      <h3>📍 Pulizie di Oggi — <span id="pGiornTodayLabel"></span></h3>
+
+      <div class="pulizie-stats" id="pGiornStats">0 / 0 completate</div>
+      <div class="pulizie-progress"><div class="pulizie-progress-bar" id="pGiornProgressBar" style="width:0%"></div></div>
+
+      <div id="pGiornChecklist"></div>
+
+      <div style="margin-top:1.2rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+        <div class="form-group" style="min-width:200px;">
+          <label>Operatore</label>
+          <input type="text" id="pGiornOperatore" placeholder="Nome operatore" value="Mario Rossi">
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <input type="text" id="pGiornNote" placeholder="Eventuali osservazioni...">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="salvaPulizie()">💾 SALVA SCHEDA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB STORICO -->
+  <div id="pGTab-storico" style="display:none;">
+    <div class="card">
+      <h3>📊 Storico Schede Pulizie</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Completate</th>
+              <th>Totali</th>
+              <th>%</th>
+              <th>Operatore</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="pGiornStoricoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB ATTIVITÀ MESE CORRENTE -->
+  <div id="pGTab-gestione" style="display:none;">
+    <div class="card">
+      <h3>📅 Attività del Mese Corrente</h3>
+      <p style="color:var(--gray); font-size:0.85rem; margin-bottom:1rem;">
+        Le attività qui sotto sono tratte dalla <strong style="color:var(--accent)">Scheda Pulizie Mensile</strong>.
+        Per aggiungere o modificare le attività, vai nella sezione mensile.
+      </p>
+      <div id="attivitaMeseList"></div>
+      <div class="btn-group" style="margin-top:1.2rem;">
+        <button class="btn btn-outline" onclick="showPage('pulizie-mensile')">📅 VAI ALLA SCHEDA MENSILE →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PULIZIE MENSILE PAGE -->
+<div id="page-pulizie-mensile" class="page">
+  <button class="back-btn" onclick="showPage('pulizie')">← PULIZIE</button>
+  <div class="section-header">
+    <h2>📅 PULIZIE CON ORARIO — MENSILE</h2>
+    <span class="badge">ANNUALE</span>
+  </div>
+  <p style="color:var(--gray); font-size:0.88rem; margin-bottom:1.5rem;">
+    Pianificazione annuale. Le attività qui aggiunte si auto-compilano nella <strong style="color:var(--accent)">scheda giornaliera</strong> ogni volta che il mese corrisponde.
+    Orari consentiti: <strong style="color:var(--accent)">16:00 – 24:00</strong>.
+  </p>
+
+  <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center;">
+    <div class="form-group" style="min-width:200px;">
+      <label>Anno di riferimento</label>
+      <select id="pMeseAnno" onchange="renderMeseGrid()"></select>
+    </div>
+    <button class="btn btn-outline" style="margin-top:1.2rem;" onclick="toggleAddMeseAttivita()">➕ AGGIUNGI ATTIVITÀ</button>
+  </div>
+
+  <!-- Form aggiungi attività mensile -->
+  <div class="add-attivita-form" id="addMeseForm">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Attività</label>
+        <input type="text" id="mNewNome" placeholder="Es: Pulizia cappa aspirante">
+      </div>
+      <div class="form-group">
+        <label>Orario</label>
+        <input type="time" id="mNewOrario" min="16:00" max="23:59">
+      </div>
+      <div class="form-group">
+        <label>Mesi (seleziona)</label>
+        <div id="mesiSelector" style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.3rem;"></div>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="mNewNote" placeholder="Prodotto, metodo...">
+      </div>
+    </div>
+    <div class="btn-group" style="margin-top:0.8rem;">
+      <button class="btn btn-primary btn-sm" onclick="aggiungiAttivitaMensile()">✅ SALVA</button>
+      <button class="btn btn-outline btn-sm" onclick="toggleAddMeseAttivita()">✖ ANNULLA</button>
+    </div>
+  </div>
+
+  <div class="mese-grid" id="meseGrid"></div>
+</div>
+
+
+<!-- PULIZIE CHIUSURA PAGE -->
+<div id="page-pulizie-chiusura" class="page">
+  <button class="back-btn" onclick="showPage('pulizie')">← PULIZIE</button>
+  <div class="section-header">
+    <h2>🔒 GIORNI DI CHIUSURA</h2>
+    <span class="badge">IMPOSTAZIONI</span>
+  </div>
+  <p style="color:var(--gray); font-size:0.88rem; margin-bottom:1.5rem;">
+    I giorni di chiusura vengono mostrati in grigio nel calendario mensile e non conteggiati come pulizie mancanti.
+  </p>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:1.5rem;">
+
+    <!-- Chiusura settimanale fissa -->
+    <div class="card">
+      <h3>📆 Chiusura Settimanale Fissa</h3>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:1rem;">Seleziona i giorni della settimana in cui il locale è sempre chiuso.</p>
+      <div id="chiusuraSettimanaleGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;margin-bottom:1.2rem;"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="salvaChiusuraSettimanale()">💾 SALVA</button>
+      </div>
+    </div>
+
+    <!-- Date specifiche -->
+    <div class="card">
+      <h3>📅 Date di Chiusura Specifiche</h3>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:1rem;">Aggiungi singole date di chiusura (festività, ferie, ecc.).</p>
+      <div style="display:flex;gap:0.6rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;">
+        <div class="form-group" style="flex:1;min-width:160px;">
+          <label>Data</label>
+          <input type="date" id="chiusuraDataInput">
+        </div>
+        <div class="form-group" style="flex:2;min-width:160px;">
+          <label>Motivo (opzionale)</label>
+          <input type="text" id="chiusuraMotivoInput" placeholder="Es: Festività, Ferie...">
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:0.1rem;" onclick="aggiungiChiusura()">➕ AGGIUNGI</button>
+      </div>
+      <div id="chiusuraDateList"></div>
+    </div>
+
+    <!-- Riepilogo mese corrente -->
+    <div class="card">
+      <h3>📊 Riepilogo Mese Corrente</h3>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:1rem;">Giorni di chiusura nel mese in corso.</p>
+      <div id="chiusuraMeseRiepilogo"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- DOCUMENTI PAGE -->
+<div id="page-documenti" class="page">
+  <div class="section-header">
+    <h2>📁 ARCHIVIO DOCUMENTI</h2>
+    <span class="badge" id="docCountBadge">0 doc</span>
+  </div>
+  <p style="color:var(--gray);font-size:0.88rem;margin-bottom:1.5rem;">
+    Carica e archivia attestati, DVR, manuali, certificazioni e qualsiasi documento aziendale. I file vengono salvati localmente nel browser.
+  </p>
+
+  <!-- Upload form -->
+  <div class="card">
+    <h3>📤 Aggiungi Documento</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome Documento</label>
+        <input type="text" id="docNome" placeholder="Es: DVR 2024, Attestato HACCP...">
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="docCategoria">
+          <option value="sicurezza">🦺 Sicurezza (DVR, DUVRI...)</option>
+          <option value="haccp">🍽️ HACCP / Alimentare</option>
+          <option value="attestati">📜 Attestati / Patentini</option>
+          <option value="manuali">📖 Manuali / Istruzioni</option>
+          <option value="contratti">📋 Contratti / Licenze</option>
+          <option value="certificazioni">🏅 Certificazioni</option>
+          <option value="altro">📦 Altro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Scadenza (opzionale)</label>
+        <input type="date" id="docScadenza">
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="docNote" placeholder="Riferimento, ente rilasciante...">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:1rem;">
+      <label>File (PDF, immagine, Word...)</label>
+      <input type="file" id="docFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+        style="background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;
+        padding:0.6rem;color:var(--light);width:100%;cursor:pointer;">
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="aggiungiDocumento()">💾 SALVA DOCUMENTO</button>
+    </div>
+  </div>
+
+  <!-- Filtro -->
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
+    <span style="font-size:0.8rem;color:var(--gray);letter-spacing:1px;text-transform:uppercase;">Filtra:</span>
+    <button class="tab-btn active" onclick="filtraDoc('tutti',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">Tutti</button>
+    <button class="tab-btn" onclick="filtraDoc('sicurezza',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">🦺 Sicurezza</button>
+    <button class="tab-btn" onclick="filtraDoc('haccp',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">🍽️ HACCP</button>
+    <button class="tab-btn" onclick="filtraDoc('attestati',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">📜 Attestati</button>
+    <button class="tab-btn" onclick="filtraDoc('manuali',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">📖 Manuali</button>
+    <button class="tab-btn" onclick="filtraDoc('contratti',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">📋 Contratti</button>
+    <button class="tab-btn" onclick="filtraDoc('certificazioni',this)" style="padding:0.4rem 0.9rem;font-size:0.82rem;">🏅 Cert.</button>
+  </div>
+
+  <div id="docList"></div>
+</div>
+
+<!-- DERATTIZZAZIONE PAGE -->
+<div id="page-derattizzazione" class="page">
+  <div class="section-header">
+    <h2>🐀 PIANO DI DERATTIZZAZIONE</h2>
+    <span class="badge">MODULO</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchDeratTab('piano',this)">📋 PIANO & INTERVENTI</button>
+    <button class="tab-btn" onclick="switchDeratTab('aree',this)">📍 AREE MONITORATE</button>
+    <button class="tab-btn" onclick="switchDeratTab('storico',this)">📊 STORICO</button>
+  </div>
+
+  <!-- TAB PIANO -->
+  <div id="deratTab-piano">
+    <!-- Prossimi interventi -->
+    <div id="deratProssimiAlert"></div>
+
+    <div class="card">
+      <h3>➕ Registra Intervento</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Data Intervento</label>
+          <input type="date" id="deratData">
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="deratTipo">
+            <option value="derattizzazione">🐀 Derattizzazione</option>
+            <option value="disinfestazione">🦟 Disinfestazione</option>
+            <option value="deblattizzazione">🪲 Deblattizzazione</option>
+            <option value="monitoraggio">👁️ Monitoraggio</option>
+            <option value="sopralluogo">🔍 Sopralluogo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ditta Esecutrice</label>
+          <input type="text" id="deratDitta" placeholder="Es: Pest Control S.r.l.">
+        </div>
+        <div class="form-group">
+          <label>Operatore / Tecnico</label>
+          <input type="text" id="deratOperatore" placeholder="Nome tecnico">
+        </div>
+        <div class="form-group">
+          <label>Prodotto Utilizzato</label>
+          <input type="text" id="deratProdotto" placeholder="Es: Brodifacoum 0.005%">
+        </div>
+        <div class="form-group">
+          <label>Prossimo Intervento</label>
+          <input type="date" id="deratProssimo">
+        </div>
+        <div class="form-group">
+          <label>Stato</label>
+          <select id="deratStato">
+            <option value="completato">✅ Completato</option>
+            <option value="pianificato">📅 Pianificato</option>
+            <option value="urgente">⚠️ Urgente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Esito</label>
+          <select id="deratEsito">
+            <option value="positivo">✅ Positivo</option>
+            <option value="negativo">⚠️ Tracce rilevate</option>
+            <option value="critico">🚨 Infestazione attiva</option>
+            <option value="na">— N/A (pianificato)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:0.8rem;">
+        <label>Aree Trattate</label>
+        <div id="deratAreeSel" style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem;min-height:36px;padding:0.5rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:7px;"></div>
+      </div>
+      <div class="form-group" style="margin-top:0.8rem;">
+        <label>Note / Osservazioni</label>
+        <input type="text" id="deratNote" placeholder="Descrizione intervento, raccomandazioni...">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="salvaIntervento()">💾 SALVA INTERVENTO</button>
+        <button class="btn btn-outline" onclick="resetInterventoForm()">🔄 RESET</button>
+      </div>
+    </div>
+
+    <!-- Timeline interventi -->
+    <div class="card">
+      <h3>🗓️ Timeline Interventi</h3>
+      <div class="derat-timeline" id="deratTimeline">
+        <div style="color:var(--gray);font-size:0.85rem;padding:1rem 0;">Nessun intervento registrato.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB AREE -->
+  <div id="deratTab-aree" style="display:none;">
+    <div class="card">
+      <h3>📍 Gestione Aree Monitorate</h3>
+      <p style="color:var(--gray);font-size:0.85rem;margin-bottom:1rem;">
+        Definisci le aree del locale soggette a monitoraggio e derattizzazione.
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome Area</label>
+          <input type="text" id="areaNome" placeholder="Es: Cucina, Magazzino, WC...">
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="areaTipo">
+            <option value="produzione">🍳 Area produzione</option>
+            <option value="stoccaggio">📦 Stoccaggio / Magazzino</option>
+            <option value="servizi">🚿 Servizi / Bagni</option>
+            <option value="esterno">🌿 Area esterna</option>
+            <option value="uffici">💼 Uffici</option>
+            <option value="altro">📋 Altro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>N° Esche / Trappole</label>
+          <input type="number" id="areaN" placeholder="Es: 3" min="0">
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <input type="text" id="areaNote" placeholder="Posizione, accorgimenti...">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="aggiungiArea()">➕ AGGIUNGI AREA</button>
+      </div>
+      <div id="areeList" style="margin-top:1.2rem;"></div>
+    </div>
+  </div>
+
+  <!-- TAB STORICO -->
+  <div id="deratTab-storico" style="display:none;">
+    <div class="card">
+      <h3>📊 Storico Completo Interventi</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Ditta</th>
+              <th>Prodotto</th>
+              <th>Aree</th>
+              <th>Esito</th>
+              <th>Prossimo</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="deratStoricoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <div class="section-header">
+    <h2>⚙️ AREA AMMINISTRAZIONE</h2>
+    <span class="badge">ADMIN</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem;">
+
+    <!-- FORNITORI -->
+    <div class="card">
+      <h3>🏭 Gestione Fornitori</h3>
+      <div class="form-group">
+        <label>Nome Fornitore</label>
+        <input type="text" id="adminFornitoreNome" placeholder="Es: Coop Agro S.r.l.">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="aggiungiForn()">➕ AGGIUNGI</button>
+      </div>
+      <div style="margin-top:1rem;">
+        <div class="pill-list" id="fornitoriList"></div>
+      </div>
+    </div>
+
+    <!-- TIPI MERCE -->
+    <div class="card">
+      <h3>📦 Gestione Tipi Merce</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome Merce</label>
+          <input type="text" id="adminMerceNome" placeholder="Es: Prosciutto cotto">
+        </div>
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="adminMerceCat">
+            <option value="carni">🥩 Carni</option>
+            <option value="salumi">🍖 Salumi</option>
+            <option value="latticini">🧀 Latticini</option>
+            <option value="frutta">🍎 Frutta/Verdura</option>
+            <option value="pesce">🐟 Pesce</option>
+            <option value="secco">📦 Prodotti Secchi</option>
+            <option value="altro">📋 Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="aggiungiMerce()">➕ AGGIUNGI</button>
+      </div>
+      <div style="margin-top:1rem;">
+        <div class="pill-list" id="merciList"></div>
+      </div>
+    </div>
+
+    <!-- APPARECCHIATURE TEMP -->
+    <div class="card">
+      <h3>🌡️ Apparecchiature Monitorate</h3>
+      <div class="form-group">
+        <label>Nome Apparecchiatura</label>
+        <input type="text" id="adminApparaturaName" placeholder="Es: Frigo Reparto Carne">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Temp. Min (°C)</label>
+          <input type="number" id="adminTempMin" placeholder="-5" step="0.5">
+        </div>
+        <div class="form-group">
+          <label>Temp. Max (°C)</label>
+          <input type="number" id="adminTempMax" placeholder="4" step="0.5">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="aggiungiApparatura()">➕ AGGIUNGI</button>
+      </div>
+      <div style="margin-top:1rem;" id="apparatureList"></div>
+    </div>
+
+    <!-- INFO -->
+    <div class="card">
+      <h3>ℹ️ Info Sistema</h3>
+      <div class="form-group" style="margin-bottom:1.2rem;">
+        <label style="letter-spacing:1px;">🏢 Nome Azienda</label>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="text" id="adminNomeAzienda" placeholder="Es: Ristorante La Piazza S.r.l."
+            style="flex:1;" oninput="anteprimeNomeAzienda(this.value)">
+          <button class="btn btn-primary btn-sm" onclick="salvaNomeAzienda()">💾</button>
+        </div>
+        <div style="font-size:0.75rem;color:var(--gray);margin-top:0.3rem;">Apparirà animato nella home page</div>
+      </div>
+      <div style="color:var(--gray); font-size:0.88rem; line-height:2;">
+        <div>🗓️ <strong>Data:</strong> <span id="adminDate"></span></div>
+        <div>🌡️ <strong>Apparecchiature:</strong> <span id="adminCountApp">0</span></div>
+        <div>🏭 <strong>Fornitori:</strong> <span id="adminCountForn">0</span></div>
+        <div>📦 <strong>Tipi Merce:</strong> <span id="adminCountMerce">0</span></div>
+        <div>📋 <strong>Rilevazioni Temp:</strong> <span id="adminCountTemp">0</span></div>
+        <div>🚚 <strong>Registrazioni Merci:</strong> <span id="adminCountRint">0</span></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:1.5rem 0 1rem;padding-top:1.2rem;">
+        <h4 style="font-size:0.9rem;letter-spacing:1px;margin-bottom:1rem;">🔑 Credenziali di Accesso</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="adminCredUser" placeholder="Nuovo username">
+          </div>
+          <div class="form-group">
+            <label>Nuova Password</label>
+            <input type="password" id="adminCredPass" placeholder="Nuova password">
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:0.8rem;">
+          <button class="btn btn-primary btn-sm" onclick="salvaCredenziali()">💾 SALVA CREDENZIALI</button>
+        </div>
+      </div>
+      <div class="btn-group" style="margin-top:0.5rem;">
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('Reset tutti i dati?')) resetAll()">🗑️ RESET DATI</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  PF GESTIONALE &copy; 2024
+</footer>
+
+<!-- MOBILE MODULES DROPDOWN -->
+<div class="dropdown-menu-mobile" id="mobileModuliMenu">
+  <button class="dropdown-item" onclick="showPage('temperature'); closeMobileMenu()">🌡️ Scheda Controllo Temperature</button>
+  <button class="dropdown-item" onclick="showPage('rintracciabilita'); closeMobileMenu()">📦 Rintracciabilità Merci in Arrivo</button>
+  <button class="dropdown-item" onclick="showPage('pulizie'); closeMobileMenu()">🧹 Pulizie</button>
+  <button class="dropdown-item" onclick="showPage('documenti'); closeMobileMenu()">📁 Documenti</button>
+  <button class="dropdown-item" onclick="showPage('derattizzazione'); closeMobileMenu()">🐀 Piano di Derattizzazione</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-home" onclick="showPage('home'); setActiveNav('home')">
+      <span class="bnav-icon">🏠</span>HOME
+    </button>
+    <button class="bnav-btn" id="bnav-moduli" onclick="toggleMobileMenu()">
+      <span class="bnav-icon">📋</span>MODULI
+    </button>
+    <button class="bnav-btn" id="bnav-admin" onclick="showPage('admin'); setActiveNav('admin')">
+      <span class="bnav-icon">⚙️</span>ADMIN
+    </button>
+  </div>
+</nav>
+
+<script>
+// ===== DATA STORE =====
+let store = {
+  fornitori: ['Coop Agro S.r.l.', 'Fratelli Bianchi', 'Mario Pesce & Figli'],
+  merci: [
+    {nome:'Prosciutto cotto', cat:'salumi'},
+    {nome:'Mortadella', cat:'salumi'},
+    {nome:'Mozzarella', cat:'latticini'},
+    {nome:'Pollo intero', cat:'carni'},
+    {nome:'Tonno fresco', cat:'pesce'},
+    {nome:'Insalata mista', cat:'frutta'},
+    {nome:'Farina 00', cat:'secco'},
+  ],
+  apparature: [
+    {nome:'Frigo 1', min:-1, max:4},
+    {nome:'Frigo 2', min:-1, max:4},
+    {nome:'Freezer', min:-25, max:-18},
+    {nome:'Cella Fresca', min:0, max:8},
+    {nome:'Temp. Ambiente', min:15, max:25},
+  ],
+  tempRilevazioni: [],
+  tempUltimeValori: {},
+  rintracciabilita: [],
+  attivitaPulizie: null,
+  pulizieOggi: {},
+  pulizieStotico: [],
+  pulizieMensili: [],
+  nomeAzienda: '',
+  giorniChiusura: [],
+  chiusuraSettimanale: [],
+  documenti: [],
+  derattizzazione: { interventi:[], areeMonitorate:[] },
+};
+
+// Prova a caricare dal localStorage
+try {
+  const saved = localStorage.getItem('pfgestionale');
+  if (saved) store = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('pfgestionale', JSON.stringify(store)); } catch(e) {}
+  updateAdminStats();
+}
+
+// ===== DATE UTILS =====
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDate(d) {
+  if(!d) return '';
+  const [y,m,g] = d.split('-');
+  return `${g}/${m}/${y}`;
+}
+
+function nowTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+
+// ===== HERO ANIMATIONS =====
+
+function initHero() {
+  heroParticles();
+  heroTypewriter();
+  heroStatsCounter();
+  aggiornaHeroCompany();
+}
+
+// ---- Particles on Canvas ----
+function heroParticles() {
+  const canvas = document.getElementById('heroCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const PARTICLE_COUNT = 55;
+  const particles = Array.from({length: PARTICLE_COUNT}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.8 + 0.3,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    alpha: Math.random() * 0.5 + 0.1,
+    alphaDir: Math.random() > 0.5 ? 0.003 : -0.003,
+    // Some are gold, most are blue-white
+    hue: Math.random() > 0.85 ? 'gold' : 'blue',
+  }));
+
+  const CONNECTION_DIST = 120;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw connections
+    for(let i = 0; i < particles.length; i++) {
+      for(let j = i+1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < CONNECTION_DIST) {
+          const opacity = (1 - dist/CONNECTION_DIST) * 0.12;
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(232,160,32,${opacity})`;
+          ctx.lineWidth = 0.6;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw particles
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha += p.alphaDir;
+      if(p.alpha > 0.65 || p.alpha < 0.05) p.alphaDir *= -1;
+
+      if(p.x < -5) p.x = canvas.width + 5;
+      if(p.x > canvas.width + 5) p.x = -5;
+      if(p.y < -5) p.y = canvas.height + 5;
+      if(p.y > canvas.height + 5) p.y = -5;
+
+      ctx.beginPath();
+      if(p.hue === 'gold') {
+        ctx.fillStyle = `rgba(232,160,32,${p.alpha})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `rgba(232,160,32,0.5)`;
+      } else {
+        ctx.fillStyle = `rgba(100,160,255,${p.alpha * 0.6})`;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = `rgba(100,160,255,0.3)`;
+      }
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ---- Typewriter Effect ----
+function heroTypewriter() {
+  const el = document.getElementById('heroTypewriter');
+  if(!el) return;
+  const text = 'Gestisci temperature, tracciabilità merci, pulizie e documenti — tutto digitalizzato, professionale e sempre a portata di click.';
+  let i = 0;
+  el.textContent = '';
+  el.style.borderRight = '2px solid var(--accent)';
+
+  function type() {
+    if(i <= text.length) {
+      el.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, i < 20 ? 40 : 22);
+    } else {
+      // Blink cursor then remove
+      let blinks = 0;
+      const blink = setInterval(() => {
+        el.style.borderRight = blinks % 2 === 0 ? 'none' : '2px solid var(--accent)';
+        blinks++;
+        if(blinks > 6) { clearInterval(blink); el.style.borderRight = 'none'; }
+      }, 500);
+    }
+  }
+  setTimeout(type, 800);
+}
+
+// ---- Live Stats Counter ----
+function heroStatsCounter() {
+  const targets = {
+    heroStatTemp:    (store.tempRilevazioni||[]).length,
+    heroStatMerci:   (store.rintracciabilita||[]).length,
+    heroStatPulizie: (() => {
+      const t = today();
+      const lista = (store.pulizieMensili||[])
+        .filter(a => { const d=new Date(t+'T00:00:00'); return a.anno===d.getFullYear() && a.mesi&&a.mesi.includes(d.getMonth()); });
+      return lista.filter(a => a.eseguite && a.eseguite[t]).length + '/' + lista.length;
+    })(),
+    heroStatDoc:     (store.documenti||[]).length,
+  };
+
+  Object.entries(targets).forEach(([id, target]) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(typeof target === 'string') {
+      // fraction like "2/5"
+      setTimeout(() => {
+        el.style.animation = 'heroNumPop 0.4s ease both';
+        el.textContent = target;
+      }, 600);
+      return;
+    }
+    if(target === 0) { el.textContent = '0'; return; }
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 30));
+    const delay = 600;
+    setTimeout(() => {
+      const interval = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current;
+        if(current >= target) {
+          clearInterval(interval);
+          el.style.animation = 'heroNumPop 0.3s ease both';
+        }
+      }, 40);
+    }, delay);
+  });
+}
+
+// Keyframe for number pop
+const heroStyle = document.createElement('style');
+heroStyle.textContent = `
+  @keyframes heroNumPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); color: var(--accent2); }
+    100% { transform: scale(1); }
+  }
+`;
+document.head.appendChild(heroStyle);
+
+
+// ===== LOGIN / AUTH =====
+
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'pfgestionale2024';
+
+function getCredenziali() {
+  try {
+    const saved = localStorage.getItem('pfgestionale_auth');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return { username: DEFAULT_USER, password: DEFAULT_PASS };
+}
+
+function isLoggedIn() {
+  return sessionStorage.getItem('pfg_session') === '1';
+}
+
+function checkAuth() {
+  if (isLoggedIn()) {
+    // Logged in: hide overlay, show everything
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.body.classList.remove('logged-out');
+    // Populate admin credentials fields if visible
+    const creds = getCredenziali();
+    const uf = document.getElementById('adminCredUser');
+    const pf = document.getElementById('adminCredPass');
+    if (uf) uf.placeholder = creds.username;
+  } else {
+    // Not logged in: show overlay, hide nav
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.body.classList.add('logged-out');
+  }
+}
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const creds = getCredenziali();
+  const errEl = document.getElementById('loginError');
+
+  if (user === creds.username && pass === creds.password) {
+    sessionStorage.setItem('pfg_session', '1');
+    errEl.style.display = 'none';
+    // Animate out
+    const overlay = document.getElementById('loginOverlay');
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      document.body.classList.remove('logged-out');
+      initHero();
+    }, 400);
+  } else {
+    errEl.style.display = 'block';
+    const box = document.querySelector('.login-box');
+    box.style.animation = 'loginShake 0.4s ease';
+    setTimeout(() => box.style.animation = '', 400);
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+function doLogout() {
+  if (!confirm('Vuoi uscire dal sistema?')) return;
+  sessionStorage.removeItem('pfg_session');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  const overlay = document.getElementById('loginOverlay');
+  overlay.style.opacity = '0';
+  overlay.style.display = 'flex';
+  overlay.style.transition = 'opacity 0.3s ease';
+  setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+  document.body.classList.add('logged-out');
+  showPage('home');
+}
+
+function salvaCredenziali() {
+  const user = document.getElementById('adminCredUser').value.trim();
+  const pass = document.getElementById('adminCredPass').value.trim();
+  if (!user || !pass) { showToast('⚠️ Inserisci username e password'); return; }
+  localStorage.setItem('pfgestionale_auth', JSON.stringify({ username: user, password: pass }));
+  document.getElementById('adminCredUser').value = '';
+  document.getElementById('adminCredPass').value = '';
+  showToast('✅ Credenziali aggiornate!');
+}
+
+// ===== NOME AZIENDA =====
+function salvaNomeAzienda() {
+  const val = document.getElementById('adminNomeAzienda').value.trim();
+  store.nomeAzienda = val;
+  save();
+  aggiornaHeroCompany();
+  showToast('✅ Nome azienda salvato!');
+}
+
+function anteprimeNomeAzienda(val) {
+  // Live preview in hero while typing in admin
+  const el = document.getElementById('heroCompanyName');
+  const wrap = document.getElementById('heroCompany');
+  if(!el || !wrap) return;
+  if(val.trim()) {
+    el.textContent = val.trim();
+    wrap.style.display = 'flex';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function aggiornaHeroCompany() {
+  const el   = document.getElementById('heroCompanyName');
+  const wrap = document.getElementById('heroCompany');
+  if(!el || !wrap) return;
+  const nome = store.nomeAzienda || '';
+  if(nome) {
+    wrap.style.display = 'flex';
+    // Animate characters in one by one
+    el.textContent = '';
+    let i = 0;
+    const chars = nome.split('');
+    function addChar() {
+      if(i < chars.length) {
+        el.textContent += chars[i];
+        i++;
+        setTimeout(addChar, 55);
+      }
+    }
+    setTimeout(addChar, 300);
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+// ===== NAVIGATION =====
+function _showPageBase(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(id === 'temperature') initTemperature();
+  if(id === 'rintracciabilita') initRintracciabilita();
+  if(id === 'admin') initAdmin();
+  if(id === 'pulizie') initPulizie();
+  if(id === 'pulizie-giornaliera') initPulizieGiornaliera();
+  if(id === 'pulizie-mensile') initPulizieMensile();
+  if(id === 'home') initHero();
+  if(id === 'pulizie-chiusura') initChiusura();
+  if(id === 'documenti') initDocumenti();
+  if(id === 'derattizzazione') initDerattizzazione();
+  updateDateDisplay();
+}
+
+function toggleMenu() {
+  document.getElementById('dropdownMenu').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('menuWrapper').contains(e.target)) {
+    document.getElementById('dropdownMenu').classList.remove('open');
+  }
+});
+
+function updateDateDisplay() {
+  const d = new Date();
+  const opts = {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'};
+  document.getElementById('dateDisplay').textContent = d.toLocaleDateString('it-IT', opts).toUpperCase();
+}
+
+// ===== TEMPERATURE =====
+function initTemperature() {
+  const t = today();
+  document.getElementById('todayDateLabel').textContent = formatDate(t);
+  document.getElementById('tempDateBadge').textContent = formatDate(t);
+  
+  // Set ora
+  document.getElementById('tempOra').value = nowTime();
+
+  renderTempGrid();
+  renderTempStorico();
+  renderTempLimits();
+}
+
+function renderTempGrid() {
+  const grid = document.getElementById('tempGrid');
+  grid.innerHTML = '';
+  const todayData = store.tempRilevazioni.find(r => r.data === today());
+
+  store.apparature.forEach((app, i) => {
+    const ultimoVal = store.tempUltimeValori[app.nome];
+    const currentVal = todayData ? todayData.valori[app.nome] : null;
+    const displayVal = currentVal ?? ultimoVal ?? null;
+    
+    let colorClass = '';
+    if(displayVal !== null) {
+      if(displayVal < app.min || displayVal > app.max) colorClass = 'red';
+      else colorClass = 'green';
+    }
+
+    const cell = document.createElement('div');
+    cell.className = 'temp-cell';
+    cell.id = `tcell-${i}`;
+    cell.innerHTML = `
+      <div class="label">${app.nome}</div>
+      <div class="value ${colorClass}" id="tval-${i}">${displayVal !== null ? displayVal + '°C' : '—'}</div>
+      <div class="sub">Range: ${app.min}° / ${app.max}°C</div>
+      ${ultimoVal && !currentVal ? '<div class="sub" style="color:var(--accent);font-size:0.68rem;">↑ AUTO</div>' : ''}
+    `;
+    cell.onclick = () => editTempCell(i, displayVal);
+    grid.appendChild(cell);
+  });
+}
+
+function editTempCell(idx, currentVal) {
+  const cell = document.getElementById(`tcell-${idx}`);
+  const app = store.apparature[idx];
+  cell.classList.add('editing');
+  cell.innerHTML = `
+    <div class="label">${app.nome}</div>
+    <input type="number" id="tedit-${idx}" value="${currentVal ?? ''}" step="0.1" autofocus placeholder="°C">
+    <div class="sub">Range: ${app.min}° / ${app.max}°C</div>
+  `;
+  const input = document.getElementById(`tedit-${idx}`);
+  input.focus();
+  input.onblur = () => { saveTempCell(idx); };
+  input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
+}
+
+function saveTempCell(idx) {
+  const app = store.apparature[idx];
+  const input = document.getElementById(`tedit-${idx}`);
+  if(!input) return;
+  const val = parseFloat(input.value);
+  if(!isNaN(val)) {
+    store.tempUltimeValori[app.nome] = val;
+    // aggiorna rilevazione oggi
+    let todayRil = store.tempRilevazioni.find(r => r.data === today());
+    if(!todayRil) {
+      todayRil = {data: today(), ora: nowTime(), valori: {}, operatore:'', note:''};
+      store.tempRilevazioni.push(todayRil);
+    }
+    todayRil.valori[app.nome] = val;
+    save();
+  }
+  renderTempGrid();
+}
+
+function autoFillTemperature() {
+  if(Object.keys(store.tempUltimeValori).length === 0) {
+    alert('Nessun valore di riferimento disponibile. Inserisci le temperature oggi per la prima volta!');
+    return;
+  }
+  let todayRil = store.tempRilevazioni.find(r => r.data === today());
+  if(!todayRil) {
+    todayRil = {data: today(), ora: nowTime(), valori: {}, operatore:'', note:''};
+    store.tempRilevazioni.push(todayRil);
+  }
+  store.apparature.forEach(app => {
+    if(store.tempUltimeValori[app.nome] !== undefined) {
+      todayRil.valori[app.nome] = store.tempUltimeValori[app.nome];
+    }
+  });
+  save();
+  renderTempGrid();
+}
+
+function salvaTemperature() {
+  let todayRil = store.tempRilevazioni.find(r => r.data === today());
+  if(!todayRil) {
+    todayRil = {data: today(), ora: nowTime(), valori: {}, operatore:'', note:''};
+    store.tempRilevazioni.push(todayRil);
+  }
+  todayRil.operatore = document.getElementById('tempOperatore').value;
+  todayRil.ora = document.getElementById('tempOra').value;
+  todayRil.note = document.getElementById('tempNote').value;
+  save();
+  renderTempStorico();
+  alert('✅ Rilevazione salvata correttamente!');
+}
+
+function switchTempTab(tab, btn) {
+  document.querySelectorAll('#page-temperature .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['oggi','storico','impostazioni'].forEach(t => {
+    document.getElementById(`tempTab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  if(tab === 'storico') renderTempStorico();
+  if(tab === 'impostazioni') renderTempLimits();
+}
+
+function renderTempStorico() {
+  const tbody = document.getElementById('tempStoricoBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  [...store.tempRilevazioni].reverse().forEach(r => {
+    const row = document.createElement('tr');
+    let anomalia = false;
+    const vals = store.apparature.map(app => {
+      const v = r.valori[app.nome];
+      if(v === undefined) return '<td>—</td>';
+      const ok = v >= app.min && v <= app.max;
+      if(!ok) anomalia = true;
+      return `<td style="color:${ok ? 'var(--green)' : 'var(--red)'}">${v}°C</td>`;
+    }).join('');
+    row.innerHTML = `
+      <td>${formatDate(r.data)}</td>
+      <td>${r.ora || '—'}</td>
+      ${vals}
+      <td>${r.operatore || '—'}</td>
+      <td><span class="${anomalia ? 'badge-warn' : 'badge-ok'}">${anomalia ? '⚠️ Anomalia' : '✅ OK'}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+  // Fix header dinamico
+  const thead = document.querySelector('#tempStoricoTable thead tr');
+  if(thead) {
+    thead.innerHTML = '<th>Data</th><th>Ora</th>' +
+      store.apparature.map(a => `<th>${a.nome}</th>`).join('') +
+      '<th>Operatore</th><th>Stato</th>';
+  }
+}
+
+function renderTempLimits() {
+  const grid = document.getElementById('tempLimitsGrid');
+  if(!grid) return;
+  grid.innerHTML = `<div class="form-grid">` +
+    store.apparature.map((app, i) => `
+      <div class="card" style="margin:0; padding:1rem;">
+        <h3 style="font-size:1rem; margin-bottom:0.8rem;">${app.nome}</h3>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="form-group">
+            <label>Min °C</label>
+            <input type="number" id="lmin-${i}" value="${app.min}" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>Max °C</label>
+            <input type="number" id="lmax-${i}" value="${app.max}" step="0.5">
+          </div>
+        </div>
+      </div>
+    `).join('') +
+  `</div>`;
+}
+
+function salvaLimiti() {
+  store.apparature.forEach((app, i) => {
+    const min = parseFloat(document.getElementById(`lmin-${i}`)?.value);
+    const max = parseFloat(document.getElementById(`lmax-${i}`)?.value);
+    if(!isNaN(min)) app.min = min;
+    if(!isNaN(max)) app.max = max;
+  });
+  save();
+  alert('✅ Limiti salvati!');
+}
+
+
+// ===== BOLLA / DDT ALLEGATI =====
+
+let bollaData = null; // { dataUrl, name, type, size }
+let cameraStream = null;
+
+function handleBollaFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    bollaData = { dataUrl: e.target.result, name: file.name, type: file.type, size: file.size };
+    mostraPreviewBolla();
+  };
+  reader.readAsDataURL(file);
+}
+
+function mostraPreviewBolla() {
+  if (!bollaData) return;
+  const preview = document.getElementById('bollaPreview');
+  const icon = document.getElementById('bollaPreviewIcon');
+  const name = document.getElementById('bollaPreviewName');
+  const size = document.getElementById('bollaPreviewSize');
+  const img  = document.getElementById('bollaPreviewImg');
+
+  const isImg = bollaData.type.startsWith('image/');
+  icon.textContent = bollaData.type.includes('pdf') ? '📄' : isImg ? '🖼️' : '📎';
+  name.textContent = bollaData.name;
+  const kb = Math.round(bollaData.size / 1024);
+  size.textContent = kb > 1024 ? (kb/1024).toFixed(1) + ' MB' : kb + ' KB';
+
+  if (isImg) {
+    img.src = bollaData.dataUrl;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+  }
+  preview.style.display = 'block';
+}
+
+function rimuoviBolla() {
+  bollaData = null;
+  document.getElementById('bollaPreview').style.display = 'none';
+  document.getElementById('bollaPreviewImg').src = '';
+  document.getElementById('bollaFile').value = '';
+}
+
+async function apriFotocamera() {
+  const area = document.getElementById('bollaCameraArea');
+  const video = document.getElementById('bollaVideo');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    video.srcObject = cameraStream;
+    area.style.display = 'block';
+    document.getElementById('bollaCameraBtn').style.display = 'none';
+  } catch(e) {
+    showToast('⚠️ Fotocamera non disponibile: ' + e.message);
+  }
+}
+
+function scattaFoto() {
+  const video  = document.getElementById('bollaVideo');
+  const canvas = document.getElementById('bollaCanvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  const sizeEst = Math.round(dataUrl.length * 0.75); // base64 estimate
+  bollaData = { dataUrl, name: 'foto_bolla_' + today() + '.jpg', type: 'image/jpeg', size: sizeEst };
+  chiudiFotocamera();
+  mostraPreviewBolla();
+}
+
+function chiudiFotocamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('bollaCameraArea').style.display = 'none';
+  document.getElementById('bollaCameraBtn').style.display = 'inline-flex';
+  document.getElementById('bollaVideo').srcObject = null;
+}
+
+function resetBolla() {
+  rimuoviBolla();
+  chiudiFotocamera();
+}
+
+function visualizzaBolla(idx) {
+  const r = store.rintracciabilita[idx] || [...store.rintracciabilita].reverse()[idx];
+  if (!r || !r.bolla) return;
+  if (r.bolla.type === 'application/pdf' || r.bolla.dataUrl.startsWith('data:application/pdf')) {
+    // Open PDF in new tab
+    const win = window.open();
+    win.document.write('<iframe src="' + r.bolla.dataUrl + '" width="100%" height="100%" style="border:none;"></iframe>');
+  } else {
+    // Open image in new tab
+    const win = window.open();
+    win.document.write('<img src="' + r.bolla.dataUrl + '" style="max-width:100%;height:auto;background:#000;display:block;margin:auto;">');
+  }
+}
+
+// ===== RINTRACCIABILITÀ =====
+let merciSelezionate = [];
+let fornitoreSelezionato = '';
+
+function initRintracciabilita() {
+  const t = today();
+  document.getElementById('rDateBadge').textContent = formatDate(t);
+  document.getElementById('rData').value = t;
+  document.getElementById('rOra').value = nowTime();
+  renderFornitoriButtons();
+  renderMerciButtons();
+  renderRegistrazioniOggi();
+  renderRStorico();
+}
+
+function apriFormReg() {
+  const panel = document.getElementById('regFormPanel');
+  const btn = document.getElementById('addRegBtn');
+  panel.classList.add('open');
+  btn.style.display = 'none';
+  // reset fields
+  document.getElementById('rData').value = today();
+  document.getElementById('rOra').value = nowTime();
+  // scroll to panel
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function chiudiFormReg() {
+  document.getElementById('regFormPanel').classList.remove('open');
+  document.getElementById('addRegBtn').style.display = 'flex';
+  resetRintracciabilita();
+}
+
+function renderRegistrazioniOggi() {
+  const cont = document.getElementById('registrazioniOggi');
+  if(!cont) return;
+  const t = today();
+  const items = store.rintracciabilita.filter(r => r.data === t);
+  if(!items.length) {
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>Nessuna merce registrata oggi.<br>Premi <strong>+</strong> per aggiungere la prima.</p></div>';
+    return;
+  }
+  const confMap = {conforme:'✅', non_conforme:'❌', condizionale:'⚠️'};
+  const confLabel = {conforme:'Conforme', non_conforme:'Non Conforme', condizionale:'Con riserva'};
+  // Build index map: position in filtered array -> index in full store array
+  const indexedItems = store.rintracciabilita
+    .map((r, globalIdx) => ({ r, globalIdx }))
+    .filter(({ r }) => r.data === t);
+
+  cont.innerHTML = '<div class="registrazioni-list">' +
+    indexedItems.map(({ r, globalIdx }) => {
+      const merci = Array.isArray(r.merci) ? r.merci.join(', ') : r.merci;
+      return `<div class="reg-item">
+        <div class="reg-item-info">
+          <div class="reg-item-title">${r.fornitore} — ${merci}</div>
+          <div class="reg-item-sub">
+            ${r.ora ? r.ora + ' &bull; ' : ''}
+            ${r.ddt ? 'DDT: ' + r.ddt + ' &bull; ' : ''}
+            ${r.lotto ? 'Lotto: ' + r.lotto + ' &bull; ' : ''}
+            ${r.temp ? r.temp + '°C &bull; ' : ''}
+            ${r.quantita || ''}
+          </div>
+        </div>
+        <div class="reg-item-badges">
+          <span class="${r.conformita === 'conforme' ? 'badge-ok' : 'badge-warn'}">${confMap[r.conformita]||''} ${confLabel[r.conformita]||''}</span>
+          ${r.bolla ? `<span class="bolla-link" onclick="visualizzaBolla(${globalIdx})" title="Visualizza bolla">📎 Bolla</span>` : ''}
+          <button class="reg-item-del" onclick="delRegistrazione(${globalIdx})" title="Elimina">×</button>
+        </div>
+      </div>`;
+    }).join('') +
+  '</div>';
+}
+
+function delRegistrazione(idx) {
+  if(confirm('Eliminare questa registrazione?')) {
+    store.rintracciabilita.splice(idx, 1);
+    save();
+    renderRegistrazioniOggi();
+    renderRStorico();
+  }
+}
+
+function toggleRStorico(btn) {
+  const sec = document.getElementById('rStoricoSection');
+  if(sec.style.display === 'none') {
+    sec.style.display = 'block';
+    btn.textContent = '▲ NASCONDI STORICO';
+    renderRStorico();
+  } else {
+    sec.style.display = 'none';
+    btn.textContent = '📋 MOSTRA STORICO COMPLETO';
+  }
+}
+
+
+function renderFornitoriButtons() {
+  const cont = document.getElementById('fornitoriButtons');
+  if(!cont) return;
+  cont.innerHTML = store.fornitori.map(f => `
+    <button class="merce-tag" id="fbtn-${f.replace(/\s/g,'_')}" onclick="selForn('${f}')">${f}</button>
+  `).join('');
+}
+
+function selForn(nome) {
+  fornitoreSelezionato = nome;
+  document.getElementById('rFornitoreInput').value = nome;
+  document.querySelectorAll('#fornitoriButtons .merce-tag').forEach(b => b.classList.remove('selected'));
+  const btn = document.getElementById(`fbtn-${nome.replace(/\s/g,'_')}`);
+  if(btn) btn.classList.add('selected');
+}
+
+function renderMerciButtons() {
+  const cont = document.getElementById('merciButtons');
+  if(!cont) return;
+  const cats = ['carni','salumi','latticini','frutta','pesce','secco','altro'];
+  const catLabel = {carni:'🥩',salumi:'🍖',latticini:'🧀',frutta:'🍎',pesce:'🐟',secco:'📦',altro:'📋'};
+  cont.innerHTML = cats.map(cat => {
+    const merciCat = store.merci.filter(m => m.cat === cat);
+    if(!merciCat.length) return '';
+    return merciCat.map(m => `
+      <button class="merce-tag" id="mbtn-${m.nome.replace(/\s/g,'_')}" onclick="toggleMerce('${m.nome}')">${catLabel[cat]} ${m.nome}</button>
+    `).join('');
+  }).join('');
+}
+
+function toggleMerce(nome) {
+  const idx = merciSelezionate.indexOf(nome);
+  if(idx === -1) merciSelezionate.push(nome);
+  else merciSelezionate.splice(idx, 1);
+  updateMerciSelezionate();
+}
+
+function updateMerciSelezionate() {
+  const cont = document.getElementById('merciSelezionate');
+  if(!cont) return;
+  // update buttons visual
+  store.merci.forEach(m => {
+    const btn = document.getElementById(`mbtn-${m.nome.replace(/\s/g,'_')}`);
+    if(btn) btn.classList.toggle('selected', merciSelezionate.includes(m.nome));
+  });
+  cont.innerHTML = merciSelezionate.length ? 
+    `<div style="color:var(--gray);font-size:0.78rem;letter-spacing:1px;width:100%;margin-bottom:0.3rem;">SELEZIONATE:</div>` +
+    merciSelezionate.map(m => `<span class="merce-tag selected">${m} <span class="remove" onclick="toggleMerce('${m}')">×</span></span>`).join('') 
+    : '';
+}
+
+function salvaRintracciabilita() {
+  if(!fornitoreSelezionato) { alert('Seleziona un fornitore!'); return; }
+  if(!merciSelezionate.length) { alert('Seleziona almeno una merce!'); return; }
+
+  const rec = {
+    data: document.getElementById('rData').value || today(),
+    ora: document.getElementById('rOra').value,
+    fornitore: fornitoreSelezionato,
+    merci: [...merciSelezionate],
+    ddt: document.getElementById('rDDT').value,
+    lotto: document.getElementById('rLotto').value,
+    scadenza: document.getElementById('rScadenza').value,
+    temp: document.getElementById('rTemp').value,
+    quantita: document.getElementById('rQuantita').value,
+    operatore: document.getElementById('rOperatore').value,
+    conformita: document.getElementById('rConformita').value,
+    note: document.getElementById('rNote').value,
+    bolla: bollaData ? { dataUrl: bollaData.dataUrl, name: bollaData.name, type: bollaData.type, size: bollaData.size } : null,
+  };
+  store.rintracciabilita.push(rec);
+  save();
+  renderRegistrazioniOggi();
+  renderRStorico();
+  chiudiFormReg();
+  // Small toast feedback
+  showToast('✅ Merce registrata!');
+}
+
+function resetRintracciabilita() {
+  fornitoreSelezionato = '';
+  merciSelezionate = [];
+  document.getElementById('rFornitoreInput').value = '';
+  document.getElementById('rDDT').value = '';
+  document.getElementById('rLotto').value = '';
+  document.getElementById('rScadenza').value = '';
+  document.getElementById('rTemp').value = '';
+  document.getElementById('rQuantita').value = '';
+  document.getElementById('rNote').value = '';
+  document.getElementById('rConformita').value = 'conforme';
+  resetBolla();
+  document.querySelectorAll('#fornitoriButtons .merce-tag').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#merciButtons .merce-tag').forEach(b => b.classList.remove('selected'));
+  document.getElementById('merciSelezionate').innerHTML = '';
+}
+
+function renderRStorico() {
+  const tbody = document.getElementById('rStoricoBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  [...store.rintracciabilita].reverse().forEach(r => {
+    const confMap = {conforme:'✅ Conforme', non_conforme:'❌ Non Conforme', condizionale:'⚠️ Con riserva'};
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${formatDate(r.data)}</td>
+      <td>${r.fornitore}</td>
+      <td>${Array.isArray(r.merci) ? r.merci.join(', ') : r.merci}</td>
+      <td>${r.ddt || '—'}</td>
+      <td>${r.bolla ? `<span class='bolla-link' onclick='visualizzaBolla(${store.rintracciabilita.length - 1 - idx})'>📎 ${r.bolla.name.length > 15 ? r.bolla.name.slice(0,15)+'…' : r.bolla.name}</span>` : '—'}</td>
+      <td>${r.lotto || '—'}</td>
+      <td>${r.temp ? r.temp+'°C' : '—'}</td>
+      <td>${r.operatore || '—'}</td>
+      <td><span class="${r.conformita === 'conforme' ? 'badge-ok' : 'badge-warn'}">${confMap[r.conformita] || r.conformita}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// switchRTab removed - new UI handles this differently
+
+// ===== ADMIN =====
+function initAdmin() {
+  renderAdminFornitori();
+  renderAdminMerci();
+  renderAdminApparature();
+  updateAdminStats();
+  document.getElementById('adminDate').textContent = formatDate(today());
+  const naf = document.getElementById('adminNomeAzienda');
+  if(naf) naf.value = store.nomeAzienda || '';
+}
+
+function renderAdminFornitori() {
+  const el = document.getElementById('fornitoriList');
+  if(!el) return;
+  el.innerHTML = store.fornitori.map((f,i) => `
+    <span class="pill">${f} <span class="del-pill" onclick="delForn(${i})">×</span></span>
+  `).join('');
+}
+
+function aggiungiForn() {
+  const v = document.getElementById('adminFornitoreNome').value.trim();
+  if(!v) return;
+  if(!store.fornitori.includes(v)) store.fornitori.push(v);
+  document.getElementById('adminFornitoreNome').value = '';
+  save();
+  renderAdminFornitori();
+}
+
+function delForn(i) {
+  if(confirm('Eliminare questo fornitore?')) {
+    store.fornitori.splice(i, 1);
+    save();
+    renderAdminFornitori();
+  }
+}
+
+function renderAdminMerci() {
+  const el = document.getElementById('merciList');
+  if(!el) return;
+  const catLabel = {carni:'🥩',salumi:'🍖',latticini:'🧀',frutta:'🍎',pesce:'🐟',secco:'📦',altro:'📋'};
+  el.innerHTML = store.merci.map((m,i) => `
+    <span class="pill">${catLabel[m.cat]||''} ${m.nome} <span class="del-pill" onclick="delMerce(${i})">×</span></span>
+  `).join('');
+}
+
+function aggiungiMerce() {
+  const nome = document.getElementById('adminMerceNome').value.trim();
+  const cat = document.getElementById('adminMerceCat').value;
+  if(!nome) return;
+  if(!store.merci.find(m => m.nome === nome)) store.merci.push({nome, cat});
+  document.getElementById('adminMerceNome').value = '';
+  save();
+  renderAdminMerci();
+}
+
+function delMerce(i) {
+  if(confirm('Eliminare questa merce?')) {
+    store.merci.splice(i, 1);
+    save();
+    renderAdminMerci();
+  }
+}
+
+function renderAdminApparature() {
+  const el = document.getElementById('apparatureList');
+  if(!el) return;
+  el.innerHTML = store.apparature.map((a,i) => `
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:0.9rem;">🌡️ <strong>${a.nome}</strong> <span style="color:var(--gray)">(${a.min}° / ${a.max}°C)</span></span>
+      <button class="btn btn-danger btn-sm" onclick="delApp(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function aggiungiApparatura() {
+  const nome = document.getElementById('adminApparaturaName').value.trim();
+  const min = parseFloat(document.getElementById('adminTempMin').value);
+  const max = parseFloat(document.getElementById('adminTempMax').value);
+  if(!nome || isNaN(min) || isNaN(max)) { alert('Compila tutti i campi!'); return; }
+  store.apparature.push({nome, min, max});
+  document.getElementById('adminApparaturaName').value = '';
+  document.getElementById('adminTempMin').value = '';
+  document.getElementById('adminTempMax').value = '';
+  save();
+  renderAdminApparature();
+}
+
+function delApp(i) {
+  if(confirm('Eliminare questa apparecchiatura?')) {
+    store.apparature.splice(i, 1);
+    save();
+    renderAdminApparature();
+  }
+}
+
+function updateAdminStats() {
+  const s = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  s('adminCountApp', store.apparature.length);
+  s('adminCountForn', store.fornitori.length);
+  s('adminCountMerce', store.merci.length);
+  s('adminCountTemp', store.tempRilevazioni.length);
+  s('adminCountRint', store.rintracciabilita.length);
+}
+
+function resetAll() {
+  store = {
+    fornitori: [], merci: [], apparature: [],
+    tempRilevazioni: [], tempUltimeValori: {}, rintracciabilita: [],
+    attivitaPulizie: null, pulizieOggi: {}, pulizieStotico: [], pulizieMensili: [],
+    nomeAzienda: '',
+    giorniChiusura: [], chiusuraSettimanale: [],
+    documenti: [], derattizzazione: { interventi:[], areeMonitorate:[] }
+  };
+  save();
+  location.reload();
+}
+
+
+
+// ===== TOAST =====
+function showToast(msg) {
+  let t = document.getElementById('pfToast');
+  if(!t) {
+    t = document.createElement('div');
+    t.id = 'pfToast';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:1rem;letter-spacing:1px;padding:0.8rem 2rem;border-radius:100px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.4);display:none;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+// ===== HERO DROPDOWN =====
+function toggleHeroMenu() {
+  document.getElementById('heroDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const wrapper = document.querySelector('.hero-menu-wrapper');
+  if(wrapper && !wrapper.contains(e.target)) {
+    const dd = document.getElementById('heroDropdown');
+    if(dd) dd.classList.remove('open');
+  }
+});
+
+// ===== MOBILE NAV =====
+function toggleMobileMenu() {
+  document.getElementById('mobileModuliMenu').classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobileModuliMenu').classList.remove('open');
+}
+function setActiveNav(page) {
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('bnav-' + page);
+  if(btn) btn.classList.add('active');
+  closeMobileMenu();
+}
+document.addEventListener('click', e => {
+  const menu = document.getElementById('mobileModuliMenu');
+  const modBtn = document.getElementById('bnav-moduli');
+  if(menu && modBtn && !menu.contains(e.target) && !modBtn.contains(e.target)) closeMobileMenu();
+});
+function showPage(id) {
+  _showPageBase(id);
+  const navMap = {home:'home', temperature:'moduli', rintracciabilita:'moduli', pulizie:'moduli', 'pulizie-giornaliera':'moduli', 'pulizie-mensile':'moduli', 'pulizie-chiusura':'moduli', documenti:'documenti', derattizzazione:'moduli', admin:'admin'};
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const target = document.getElementById('bnav-' + (navMap[id] || 'home'));
+  if(target) target.classList.add('active');
+}
+
+
+// ===== PULIZIE =====
+// ARCHITETTURA: pulizieMensili è l'UNICA fonte dati.
+// Ogni record: {nome, orario(16-24), note, anno, mesi:[0-11], eseguite:{}}
+// eseguite["YYYY-MM-DD"] = {ora, operatore}
+// La checklist giornaliera si popola da pulizieMensili filtrando anno+mese.
+// Salvare la giornaliera scrive dentro eseguite di ogni record mensile.
+
+const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+              'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+// Seed dati di esempio se vuoti
+if(!store.pulizieMensili || !store.pulizieMensili.length) {
+  const anno = new Date().getFullYear();
+  const tuttiMesi = [0,1,2,3,4,5,6,7,8,9,10,11];
+  store.pulizieMensili = [
+    {nome:'Pulizia piani di lavoro',     orario:'16:00', note:'Detergente neutro', anno, mesi:tuttiMesi, eseguite:{}},
+    {nome:'Sanificazione taglieri',       orario:'16:30', note:'',                 anno, mesi:tuttiMesi, eseguite:{}},
+    {nome:'Pulizia pavimenti cucina',     orario:'17:00', note:'',                 anno, mesi:tuttiMesi, eseguite:{}},
+    {nome:'Svuotamento cestini',          orario:'18:00', note:'',                 anno, mesi:tuttiMesi, eseguite:{}},
+    {nome:'Pulizia frigoriferi esterni',  orario:'19:00', note:'Mensile',          anno, mesi:[0,3,6,9],  eseguite:{}},
+    {nome:'Sanificazione cella frigo',    orario:'20:00', note:'',                 anno, mesi:tuttiMesi, eseguite:{}},
+    {nome:'Pulizia cappa aspirante',      orario:'21:00', note:'Trimestrale',      anno, mesi:[2,5,8,11], eseguite:{}},
+  ];
+  save();
+}
+if(!store.pulizieStotico) store.pulizieStotico = [];
+
+function showSubPage(id) { showPage(id); }
+function initPulizie() {}
+
+// ---- Helpers ----
+function getAttivitaDelGiorno(dateStr) {
+  // dateStr = "YYYY-MM-DD"
+  const d = new Date(dateStr);
+  const anno = d.getFullYear();
+  const mese = d.getMonth(); // 0-11
+  return store.pulizieMensili
+    .map((a, idx) => ({a, idx}))
+    .filter(({a}) => a.anno === anno && Array.isArray(a.mesi) && a.mesi.includes(mese))
+    .sort((x, y) => (x.a.orario||'').localeCompare(y.a.orario||''));
+}
+
+function isEseguita(attivita, dateStr) {
+  if(!attivita.eseguite) return false;
+  return !!attivita.eseguite[dateStr];
+}
+
+// ---- SCHEDA GIORNALIERA ----
+function initPulizieGiornaliera() {
+  const t = today();
+  document.getElementById('pGiornDateBadge').textContent = formatDate(t);
+  document.getElementById('pGiornTodayLabel').textContent = formatDate(t);
+  renderPGChecklist();
+  renderAttivitaMeseList();
+}
+
+function renderPGChecklist() {
+  const cont = document.getElementById('pGiornChecklist');
+  if(!cont) return;
+  const t = today();
+
+  // Verifica se oggi è giorno di chiusura
+  if(isGiornoChiusura(t)) {
+    const motivo = getMotivoChiusura(t);
+    cont.innerHTML = `<div class="empty-state" style="padding:2rem 0;">
+      <div class="empty-icon">🔒</div>
+      <p><strong style="color:var(--gray);">Locale chiuso oggi</strong><br>
+      <span style="font-size:0.85rem;">${motivo}</span><br>
+      <span style="font-size:0.8rem;color:var(--gray);">Nessuna pulizia prevista per i giorni di chiusura.</span></p>
+    </div>`;
+    aggiornaProgressBar(0, 0);
+    return;
+  }
+
+  const lista = getAttivitaDelGiorno(t);
+
+  if(!lista.length) {
+    cont.innerHTML = '<div class="empty-state" style="padding:2rem 0;"><div class="empty-icon">📅</div><p>Nessuna attività pianificata per questo mese.<br>Aggiungile nella <strong>Scheda Mensile</strong>.</p></div>';
+    aggiornaProgressBar(0, 0);
+    return;
+  }
+
+  let done = 0;
+  cont.innerHTML = lista.map(({a, idx}) => {
+    const eseguita = isEseguita(a, t);
+    if(eseguita) done++;
+    const oraEff = eseguita ? a.eseguite[t].ora : a.orario;
+    return `<div class="pulizia-check-item ${eseguita ? 'done' : ''}" onclick="togglePulizia(${idx})">
+      <div class="pci-checkbox">${eseguita ? '✓' : ''}</div>
+      <div class="pci-info">
+        <div class="pci-name">${a.nome}</div>
+        <div class="pci-meta">${a.note||''}</div>
+      </div>
+      <div class="pci-ora">${oraEff||''}</div>
+    </div>`;
+  }).join('');
+
+  aggiornaProgressBar(done, lista.length);
+}
+
+function aggiornaProgressBar(done, tot) {
+  const pct = tot ? Math.round(done/tot*100) : 0;
+  const statsEl = document.getElementById('pGiornStats');
+  const barEl   = document.getElementById('pGiornProgressBar');
+  if(statsEl) statsEl.textContent = `${done} / ${tot} completate (${pct}%)`;
+  if(barEl)   barEl.style.width = pct + '%';
+}
+
+function togglePulizia(idx) {
+  const t = today();
+  const a = store.pulizieMensili[idx];
+  if(!a) return;
+  if(!a.eseguite) a.eseguite = {};
+  if(a.eseguite[t]) {
+    delete a.eseguite[t];
+  } else {
+    const op = document.getElementById('pGiornOperatore')?.value || '';
+    a.eseguite[t] = {ora: nowTime(), operatore: op};
+  }
+  save();
+  renderPGChecklist();
+}
+
+function salvaPulizie() {
+  const t = today();
+  const lista = getAttivitaDelGiorno(t);
+  const tot = lista.length;
+  const done = lista.filter(({a}) => isEseguita(a, t)).length;
+  const op   = document.getElementById('pGiornOperatore')?.value || '';
+  const note = document.getElementById('pGiornNote')?.value || '';
+
+  if(!store.pulizieStotico) store.pulizieStotico = [];
+  store.pulizieStotico = store.pulizieStotico.filter(s => s.data !== t);
+  store.pulizieStotico.push({data:t, done, tot, operatore:op, note});
+
+  // Scrivi operatore su tutte le eseguite di oggi (se non già impostato)
+  lista.forEach(({a}) => {
+    if(a.eseguite && a.eseguite[t] && !a.eseguite[t].operatore) {
+      a.eseguite[t].operatore = op;
+    }
+  });
+
+  save();
+  renderPGStorico();
+  showToast('💾 Scheda salvata! Dati aggiornati anche nel mensile.');
+}
+
+function renderPGStorico() {
+  const tbody = document.getElementById('pGiornStoricoBody');
+  if(!tbody) return;
+  const data = (store.pulizieStotico || []).slice().reverse();
+  tbody.innerHTML = data.length ? data.map(s => {
+    const pct = s.tot ? Math.round(s.done/s.tot*100) : 0;
+    return `<tr>
+      <td>${formatDate(s.data)}</td>
+      <td style="color:var(--green)">${s.done}</td>
+      <td>${s.tot}</td>
+      <td><span class="${pct===100?'badge-ok':'badge-warn'}">${pct}%</span></td>
+      <td>${s.operatore||'—'}</td>
+      <td>${s.note||'—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="color:var(--gray);text-align:center;padding:1.5rem;">Nessuna scheda salvata</td></tr>';
+}
+
+function renderAttivitaMeseList() {
+  const el = document.getElementById('attivitaMeseList');
+  if(!el) return;
+  const d = new Date();
+  const anno = d.getFullYear();
+  const mese = d.getMonth();
+  const lista = store.pulizieMensili
+    .filter(a => a.anno === anno && Array.isArray(a.mesi) && a.mesi.includes(mese))
+    .sort((a,b) => (a.orario||'').localeCompare(b.orario||''));
+
+  if(!lista.length) {
+    el.innerHTML = '<p style="color:var(--gray);font-size:0.85rem;">Nessuna attività per il mese corrente. <a href="#" onclick="showPage(\'pulizie-mensile\');return false;" style="color:var(--accent);">Aggiungile →</a></p>';
+    return;
+  }
+  el.innerHTML = lista.map(a => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);gap:0.5rem;">
+      <div>
+        <div style="font-size:0.9rem;color:var(--light);">${a.nome}</div>
+        <div style="font-size:0.75rem;color:var(--gray);">${a.note||''}</div>
+      </div>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--accent);">${a.orario||''}</span>
+    </div>
+  `).join('');
+}
+
+function switchPGTab(tab, btn) {
+  document.querySelectorAll('#page-pulizie-giornaliera .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['oggi','storico','gestione'].forEach(t => {
+    const el = document.getElementById('pGTab-'+t);
+    if(el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  if(tab === 'storico')  renderPGStorico();
+  if(tab === 'gestione') renderAttivitaMeseList();
+}
+
+// ---- SCHEDA MENSILE ----
+function initPulizieMensile() {
+  if(!store.pulizieMensili) store.pulizieMensili = [];
+  const sel = document.getElementById('pMeseAnno');
+  if(sel) {
+    const curYear = new Date().getFullYear();
+    sel.innerHTML = '';
+    for(let y = curYear - 1; y <= curYear + 2; y++) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if(y === curYear) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+  renderMeseGrid();
+  renderMesiSelector();
+}
+
+function renderMesiSelector() {
+  const cont = document.getElementById('mesiSelector');
+  if(!cont) return;
+  cont.innerHTML = MESI.map((m, i) => `
+    <label style="display:inline-flex;align-items:center;gap:0.3rem;cursor:pointer;
+      padding:0.3rem 0.7rem;background:rgba(255,255,255,0.05);border-radius:5px;
+      font-size:0.8rem;color:var(--light);margin:0.15rem;border:1px solid var(--border);">
+      <input type="checkbox" value="${i}" style="accent-color:var(--accent);"> ${m.substring(0,3)}
+    </label>
+  `).join('');
+}
+
+const GIORNI_SETTIMANA = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+
+function renderMeseGrid() {
+  const grid = document.getElementById('meseGrid');
+  if(!grid) return;
+  const anno = parseInt(document.getElementById('pMeseAnno')?.value || new Date().getFullYear());
+  const oggi = today();
+
+  grid.innerHTML = MESI.map((meseName, mi) => {
+    const attivita = store.pulizieMensili
+      .map((a, idx) => ({a, idx}))
+      .filter(({a}) => a.anno === anno && Array.isArray(a.mesi) && a.mesi.includes(mi))
+      .sort((x,y) => (x.a.orario||'').localeCompare(y.a.orario||''));
+
+    const giorniMese = new Date(anno, mi+1, 0).getDate();
+
+    // Calcola stats mese (escludi giorni di chiusura)
+    let giorniConAlmenoUna = 0;
+    let totEseguite = 0;
+    let totAttese = 0;
+    for(let g=1; g<=giorniMese; g++) {
+      const ds = `${anno}-${String(mi+1).padStart(2,'0')}-${String(g).padStart(2,'0')}`;
+      if(ds > oggi) break;
+      if(isGiornoChiusura(ds)) continue; // salta giorni chiusura
+      totAttese += attivita.length;
+      const esegGiorno = attivita.filter(({a}) => a.eseguite && a.eseguite[ds]).length;
+      if(esegGiorno > 0) giorniConAlmenoUna++;
+      totEseguite += esegGiorno;
+    }
+    const pctMese = totAttese ? Math.round(totEseguite / totAttese * 100) : null;
+    const isCurrent = (anno === parseInt(oggi.substring(0,4)) && mi === parseInt(oggi.substring(5,7))-1);
+
+    return `<div class="mese-card" id="meseCard-${mi}">
+      <div class="mese-card-header" style="cursor:pointer;" onclick="toggleMeseDetail(${mi})">
+        <div style="display:flex;align-items:center;gap:0.8rem;">
+          <span class="mese-nome">${meseName} ${anno}</span>
+          ${isCurrent ? '<span style="background:var(--accent);color:var(--navy);font-size:0.65rem;font-weight:800;letter-spacing:1px;padding:0.2rem 0.6rem;border-radius:100px;">CORRENTE</span>' : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          ${attivita.length ? `
+            <span style="font-size:0.78rem;color:var(--gray);">${attivita.length} attività/giorno</span>
+            ${pctMese !== null ? `<span style="font-size:0.78rem;color:${pctMese===100?'var(--green)':pctMese>50?'var(--accent)':'var(--red)'};">${pctMese}% completato</span>` : ''}
+          ` : '<span style="font-size:0.75rem;color:var(--gray);">Nessuna attività</span>'}
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;color:var(--accent);">▼</span>
+        </div>
+      </div>
+      <div id="meseDetail-${mi}" style="display:none;">
+        ${attivita.length === 0
+          ? '<div style="padding:1.2rem 1.5rem;color:var(--gray);font-size:0.85rem;">Nessuna attività pianificata per questo mese. Aggiungile con il pulsante ➕ qui sopra.</div>'
+          : buildMeseDetailHTML(anno, mi, attivita, giorniMese, oggi)
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildMeseDetailHTML(anno, mi, attivita, giorniMese, oggi) {
+  let html = '<div class="mese-giorni-list">';
+
+  for(let g=1; g<=giorniMese; g++) {
+    const ds = `${anno}-${String(mi+1).padStart(2,'0')}-${String(g).padStart(2,'0')}`;
+    const dataObj = new Date(ds + 'T00:00:00');
+    const dow = GIORNI_SETTIMANA[dataObj.getDay()];
+    const isPast = ds < oggi;
+    const isToday = ds === oggi;
+    const isFuture = ds > oggi;
+    const isWeekend = dataObj.getDay() === 0 || dataObj.getDay() === 6;
+    const isChiuso = isGiornoChiusura(ds);
+    const motivoChiusura = isChiuso ? getMotivoChiusura(ds) : '';
+
+    const eseguite = attivita.filter(({a}) => a.eseguite && a.eseguite[ds]);
+    const mancanti = attivita.filter(({a}) => !(a.eseguite && a.eseguite[ds]));
+    const totGiorno = attivita.length;
+    const doneGiorno = eseguite.length;
+    const allDone = doneGiorno === totGiorno;
+    const noneDone = doneGiorno === 0;
+
+    let bgColor = 'rgba(255,255,255,0.02)';
+    let borderColor = 'rgba(255,255,255,0.06)';
+
+    if(isChiuso) {
+      borderColor = 'rgba(150,150,150,0.15)';
+      bgColor = 'rgba(150,150,150,0.04)';
+    } else if(isToday) {
+      borderColor = 'var(--accent)';
+      bgColor = 'rgba(232,160,32,0.04)';
+    } else if(isPast && allDone) {
+      borderColor = 'rgba(46,204,113,0.25)';
+      bgColor = 'rgba(46,204,113,0.03)';
+    } else if(isPast && !isChiuso && noneDone) {
+      borderColor = 'rgba(231,76,60,0.2)';
+    }
+
+    // Day header
+    html += `<div class="giorno-row" style="border:1px solid ${borderColor};background:${bgColor};"
+      onclick="toggleGiornoDetail('gd-${anno}-${mi}-${g}')">
+      <div class="giorno-row-left">
+        <div class="giorno-num" style="${isToday ? 'color:var(--accent);' : isFuture ? 'color:var(--gray);' : ''}">${g}</div>
+        <div class="giorno-dow" style="${isWeekend ? 'color:var(--accent);opacity:0.7;' : 'color:var(--gray);'}">${dow}</div>
+      </div>
+      <div class="giorno-row-center">
+        ${isToday ? '<span class="today-badge">OGGI</span>' : ''}
+        ${isChiuso ? `<span class="closed-badge">🔒 ${motivoChiusura}</span>` : (isWeekend ? '<span class="weekend-badge">Weekend</span>' : '')}
+        <span class="giorno-attivita-preview">`;
+
+    if(isChiuso) {
+      html += `<span style="color:var(--gray);font-size:0.8rem;font-style:italic;">Locale chiuso — nessuna pulizia prevista</span>`;
+    } else if(isFuture) {
+      html += `<span style="color:var(--gray);font-size:0.8rem;">
+        ${attivita.map(({a}) => `<span style="margin-right:0.5rem;">• ${a.orario||''} ${a.nome}</span>`).join('')}
+      </span>`;
+    } else {
+      eseguite.forEach(({a}) => {
+        const info = a.eseguite[ds];
+        html += `<span class="attiv-chip done-chip">✓ ${a.orario||''} ${a.nome}${info.ora && info.ora !== a.orario ? ' <em>('+info.ora+')</em>' : ''}</span>`;
+      });
+      if(isPast && mancanti.length) {
+        mancanti.forEach(({a}) => {
+          html += `<span class="attiv-chip miss-chip">✗ ${a.orario||''} ${a.nome}</span>`;
+        });
+      }
+    }
+
+    html += `</span></div>
+      <div class="giorno-row-right">`;
+
+    if(isChiuso) {
+      html += `<span class="day-badge-closed">🔒 Chiuso</span>`;
+    } else if(!isFuture) {
+      if(allDone) html += `<span class="day-badge-ok">✅ ${doneGiorno}/${totGiorno}</span>`;
+      else if(noneDone && isPast) html += `<span class="day-badge-miss">✗ 0/${totGiorno}</span>`;
+      else if(!isFuture) html += `<span class="day-badge-partial">${doneGiorno}/${totGiorno}</span>`;
+    } else {
+      html += `<span style="color:var(--gray);font-size:0.75rem;">${totGiorno} prev.</span>`;
+    }
+
+    html += `<span style="color:var(--gray);font-size:0.75rem;margin-left:0.5rem;">▼</span>
+      </div>
+    </div>`;
+
+    // Expanded detail (hidden by default, toggle on click)
+    html += `<div id="gd-${anno}-${mi}-${g}" class="giorno-detail" style="display:none;">`;
+    if(isChiuso) {
+      html += `<div style="padding:1rem 1rem 1rem 3.8rem;color:var(--gray);font-size:0.85rem;font-style:italic;">
+        🔒 ${motivoChiusura} — nessuna attività prevista per questo giorno.
+      </div>`;
+    } else {
+      attivita.forEach(({a, idx}) => {
+        const info = a.eseguite && a.eseguite[ds];
+        const done = !!info;
+        html += `<div class="giorno-detail-row ${done ? 'detail-done' : (isFuture ? 'detail-future' : 'detail-miss')}">
+          <div style="display:flex;align-items:center;gap:0.8rem;flex:1;min-width:0;">
+            <div class="detail-ora-badge">${a.orario||'—'}</div>
+            <div>
+              <div style="font-size:0.88rem;font-weight:500;color:${done?'var(--white)':isFuture?'var(--gray)':'rgba(255,255,255,0.5)'};">${a.nome}</div>
+              ${a.note ? `<div style="font-size:0.72rem;color:var(--gray);">${a.note}</div>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            ${done ? `
+              <div style="color:var(--green);font-size:0.82rem;font-weight:600;">✓ Eseguita</div>
+              ${info.ora ? `<div style="color:var(--gray);font-size:0.72rem;">Ore ${info.ora}</div>` : ''}
+              ${info.operatore ? `<div style="color:var(--gray);font-size:0.72rem;">${info.operatore}</div>` : ''}
+            ` : isFuture ? `
+              <div style="color:var(--gray);font-size:0.78rem;">Pianificata</div>
+            ` : `
+              <div style="color:var(--red);font-size:0.82rem;">✗ Non eseguita</div>
+            `}
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div>`; // end giorno-detail
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function toggleMeseDetail(mi) {
+  const det = document.getElementById('meseDetail-'+mi);
+  const card = document.getElementById('meseCard-'+mi);
+  if(!det) return;
+  const isOpen = det.style.display !== 'none';
+  det.style.display = isOpen ? 'none' : 'block';
+  // Update arrow
+  const arrow = card.querySelector('.mese-card-header span:last-child');
+  if(arrow && arrow.textContent.includes('▼')) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+function toggleGiornoDetail(id) {
+  const el = document.getElementById(id);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function aggiungiAttivitaMensile() {
+  const nome   = document.getElementById('mNewNome').value.trim();
+  const orario = document.getElementById('mNewOrario').value;
+  const note   = document.getElementById('mNewNote').value.trim();
+  const anno   = parseInt(document.getElementById('pMeseAnno')?.value || new Date().getFullYear());
+  const mesiChecked = [...document.querySelectorAll('#mesiSelector input:checked')].map(c => parseInt(c.value));
+
+  if(!nome)              { showToast('⚠️ Inserisci il nome attività'); return; }
+  if(!mesiChecked.length){ showToast('⚠️ Seleziona almeno un mese');  return; }
+  if(orario && (orario < '16:00' || orario > '24:00')) {
+    showToast('⚠️ Orario deve essere tra le 16:00 e le 24:00'); return;
+  }
+
+  if(!store.pulizieMensili) store.pulizieMensili = [];
+  store.pulizieMensili.push({nome, orario, note, anno, mesi:mesiChecked, eseguite:{}});
+  save();
+
+  document.getElementById('mNewNome').value   = '';
+  document.getElementById('mNewOrario').value = '';
+  document.getElementById('mNewNote').value   = '';
+  document.querySelectorAll('#mesiSelector input').forEach(c => c.checked = false);
+  toggleAddMeseAttivita();
+  renderMeseGrid();
+  showToast('✅ Attività aggiunta! Apparirà nella checklist giornaliera.');
+}
+
+function delAttivitaMensile(idx) {
+  if(confirm('Eliminare questa attività? Saranno rimossi anche tutti i dati di esecuzione.')) {
+    store.pulizieMensili.splice(idx, 1);
+    save();
+    renderMeseGrid();
+  }
+}
+
+function toggleAddMeseAttivita() {
+  const form = document.getElementById('addMeseForm');
+  if(form) form.classList.toggle('open');
+}
+
+
+
+// ===== DOCUMENTI =====
+
+const DOC_CAT = {
+  sicurezza:      {label:'Sicurezza',       icon:'🦺'},
+  haccp:          {label:'HACCP',            icon:'🍽️'},
+  attestati:      {label:'Attestati',        icon:'📜'},
+  manuali:        {label:'Manuali',          icon:'📖'},
+  contratti:      {label:'Contratti',        icon:'📋'},
+  certificazioni: {label:'Certificazioni',   icon:'🏅'},
+  altro:          {label:'Altro',            icon:'📦'},
+};
+
+let docFiltroAttivo = 'tutti';
+
+function initDocumenti() {
+  renderDocList();
+}
+
+function aggiungiDocumento() {
+  const nome      = document.getElementById('docNome').value.trim();
+  const categoria = document.getElementById('docCategoria').value;
+  const scadenza  = document.getElementById('docScadenza').value;
+  const note      = document.getElementById('docNote').value.trim();
+  const fileInput = document.getElementById('docFile');
+
+  if(!nome) { showToast('⚠️ Inserisci il nome del documento'); return; }
+
+  const file = fileInput.files[0];
+  if(file) {
+    // Leggi come base64 e salva
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const doc = {
+        id: Date.now(),
+        nome, categoria, scadenza, note,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        fileData: e.target.result,
+        dataCaricamento: today(),
+      };
+      if(!store.documenti) store.documenti = [];
+      store.documenti.push(doc);
+      try { save(); } catch(err) {
+        // Se troppo grande per localStorage, salva senza fileData
+        doc.fileData = null;
+        doc.fileName = file.name + ' (file non salvato — troppo grande)';
+        save();
+        showToast('⚠️ File troppo grande per il salvataggio locale. Salvati solo i metadati.');
+      }
+      resetDocForm();
+      renderDocList();
+      showToast('✅ Documento salvato!');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Salva solo metadati senza file
+    const doc = {
+      id: Date.now(),
+      nome, categoria, scadenza, note,
+      fileName: null, fileType: null, fileSize: null, fileData: null,
+      dataCaricamento: today(),
+    };
+    if(!store.documenti) store.documenti = [];
+    store.documenti.push(doc);
+    save();
+    resetDocForm();
+    renderDocList();
+    showToast('✅ Documento salvato (senza allegato)!');
+  }
+}
+
+function resetDocForm() {
+  document.getElementById('docNome').value = '';
+  document.getElementById('docScadenza').value = '';
+  document.getElementById('docNote').value = '';
+  document.getElementById('docFile').value = '';
+}
+
+function filtraDoc(cat, btn) {
+  docFiltroAttivo = cat;
+  document.querySelectorAll('#page-documenti .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDocList();
+}
+
+function getScadenzaInfo(scadenza) {
+  if(!scadenza) return {label:'Nessuna scadenza', cls:'', days:null};
+  const oggi = new Date(today());
+  const sc   = new Date(scadenza);
+  const diff = Math.round((sc - oggi) / (1000*60*60*24));
+  if(diff < 0)   return {label:`Scaduto ${Math.abs(diff)}gg fa`, cls:'doc-scadenza-exp', days:diff};
+  if(diff <= 30) return {label:`Scade tra ${diff} giorni`, cls:'doc-scadenza-warn', days:diff};
+  return {label:`Scade il ${formatDate(scadenza)}`, cls:'doc-scadenza-ok', days:diff};
+}
+
+function renderDocList() {
+  const el = document.getElementById('docList');
+  if(!el) return;
+  const list = (store.documenti||[]).filter(d =>
+    docFiltroAttivo === 'tutti' || d.categoria === docFiltroAttivo
+  );
+
+  // Badge count
+  const badge = document.getElementById('docCountBadge');
+  if(badge) badge.textContent = (store.documenti||[]).length + ' doc';
+
+  if(!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📁</div><p>Nessun documento' +
+      (docFiltroAttivo !== 'tutti' ? ' in questa categoria' : '') + '.<br>Usa il form sopra per aggiungerne uno.</p></div>';
+    return;
+  }
+
+  // Raggruppa per categoria
+  const grouped = {};
+  list.forEach(d => {
+    if(!grouped[d.categoria]) grouped[d.categoria] = [];
+    grouped[d.categoria].push(d);
+  });
+
+  let html = '';
+  Object.entries(grouped).forEach(([cat, docs]) => {
+    const catInfo = DOC_CAT[cat] || {label:cat, icon:'📄'};
+    if(docFiltroAttivo === 'tutti') {
+      html += `<div class="doc-category-header">${catInfo.icon} ${catInfo.label}</div>`;
+    }
+    docs.forEach(d => {
+      const sc = getScadenzaInfo(d.scadenza);
+      const fileIcon = d.fileType?.includes('pdf') ? '📄' :
+                       d.fileType?.includes('image') ? '🖼️' :
+                       d.fileType?.includes('word') || d.fileType?.includes('document') ? '📝' :
+                       d.fileType?.includes('sheet') || d.fileType?.includes('excel') ? '📊' :
+                       d.fileData ? '📎' : '🔗';
+      const fileSizeLabel = d.fileSize ? (d.fileSize > 1048576 ?
+        (d.fileSize/1048576).toFixed(1)+'MB' : Math.round(d.fileSize/1024)+'KB') : '';
+
+      html += `<div class="doc-item">
+        <div class="doc-icon">${fileIcon}</div>
+        <div class="doc-info">
+          <div class="doc-name">${d.nome}</div>
+          <div class="doc-meta">
+            ${d.fileName ? `<span>${d.fileName}</span> ` : ''}
+            ${fileSizeLabel ? `<span style="color:var(--gray);">(${fileSizeLabel})</span> ` : ''}
+            ${d.note ? `· ${d.note}` : ''}
+          </div>
+          <div class="doc-meta">
+            📅 Caricato: ${formatDate(d.dataCaricamento)}
+            ${d.scadenza ? ` · <span class="${sc.cls}">${sc.label}</span>` : ''}
+          </div>
+        </div>
+        <div class="doc-actions">
+          ${d.fileData ? `<button class="btn btn-outline btn-sm" onclick="downloadDoc(${d.id})" title="Scarica">⬇️</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="eliminaDoc(${d.id})" title="Elimina">×</button>
+        </div>
+      </div>`;
+    });
+  });
+
+  // Alert scadenze
+  const scaduti = (store.documenti||[]).filter(d => {
+    const sc = getScadenzaInfo(d.scadenza);
+    return sc.days !== null && sc.days <= 30;
+  });
+  if(scaduti.length) {
+    html = `<div class="info-box" style="border-color:var(--red);background:rgba(231,76,60,0.06);">
+      ⚠️ <strong>${scaduti.length} documento/i</strong> in scadenza entro 30 giorni:
+      ${scaduti.map(d => `<strong>${d.nome}</strong>`).join(', ')}
+    </div>` + html;
+  }
+
+  el.innerHTML = html;
+}
+
+function downloadDoc(id) {
+  const doc = (store.documenti||[]).find(d => d.id === id);
+  if(!doc || !doc.fileData) { showToast('⚠️ File non disponibile'); return; }
+  const a = document.createElement('a');
+  a.href = doc.fileData;
+  a.download = doc.fileName || doc.nome;
+  a.click();
+}
+
+function eliminaDoc(id) {
+  if(!confirm('Eliminare questo documento?')) return;
+  store.documenti = (store.documenti||[]).filter(d => d.id !== id);
+  save();
+  renderDocList();
+  showToast('🗑️ Documento eliminato');
+}
+
+// ===== DERATTIZZAZIONE =====
+
+const DERAT_TIPO_LABEL = {
+  derattizzazione:'🐀 Derattizzazione', disinfestazione:'🦟 Disinfestazione',
+  deblattizzazione:'🪲 Deblattizzazione', monitoraggio:'👁️ Monitoraggio', sopralluogo:'🔍 Sopralluogo'
+};
+const DERAT_ESITO_LABEL = {
+  positivo:'✅ Positivo', negativo:'⚠️ Tracce rilevate', critico:'🚨 Infestazione attiva', na:'— N/A'
+};
+const DERAT_STATO_LABEL = {
+  completato:'✅ Completato', pianificato:'📅 Pianificato', urgente:'⚠️ Urgente'
+};
+
+function initDerattizzazione() {
+  if(!store.derattizzazione) store.derattizzazione = {interventi:[], areeMonitorate:[]};
+  document.getElementById('deratData').value = today();
+  renderDeratAreeSel();
+  renderDeratTimeline();
+  renderAreeList();
+  renderDeratStorico();
+  renderDeratProssimiAlert();
+}
+
+function renderDeratAreeSel() {
+  const cont = document.getElementById('deratAreeSel');
+  if(!cont) return;
+  const aree = store.derattizzazione.areeMonitorate || [];
+  if(!aree.length) {
+    cont.innerHTML = '<span style="color:var(--gray);font-size:0.8rem;font-style:italic;">Nessuna area definita. Aggiungile nel tab Aree.</span>';
+    return;
+  }
+  cont.innerHTML = aree.map((a, i) => `
+    <label style="display:inline-flex;align-items:center;gap:0.3rem;cursor:pointer;
+      padding:0.3rem 0.7rem;background:rgba(255,255,255,0.05);border-radius:5px;
+      font-size:0.8rem;color:var(--light);margin:0.1rem;border:1px solid var(--border);">
+      <input type="checkbox" value="${i}" style="accent-color:var(--accent);"> ${a.nome}
+    </label>
+  `).join('');
+}
+
+function salvaIntervento() {
+  const data      = document.getElementById('deratData').value;
+  const tipo      = document.getElementById('deratTipo').value;
+  const ditta     = document.getElementById('deratDitta').value.trim();
+  const operatore = document.getElementById('deratOperatore').value.trim();
+  const prodotto  = document.getElementById('deratProdotto').value.trim();
+  const prossimo  = document.getElementById('deratProssimo').value;
+  const stato     = document.getElementById('deratStato').value;
+  const esito     = document.getElementById('deratEsito').value;
+  const note      = document.getElementById('deratNote').value.trim();
+  const areeIdx   = [...document.querySelectorAll('#deratAreeSel input:checked')].map(c => parseInt(c.value));
+  const aree      = areeIdx.map(i => (store.derattizzazione.areeMonitorate||[])[i]?.nome || '').filter(Boolean);
+
+  if(!data) { showToast('⚠️ Inserisci la data'); return; }
+
+  store.derattizzazione.interventi.push({
+    id: Date.now(), data, tipo, ditta, operatore, prodotto, prossimo, stato, esito, note, aree
+  });
+  store.derattizzazione.interventi.sort((a,b) => b.data.localeCompare(a.data));
+  save();
+  resetInterventoForm();
+  renderDeratTimeline();
+  renderDeratStorico();
+  renderDeratProssimiAlert();
+  showToast('✅ Intervento salvato!');
+}
+
+function resetInterventoForm() {
+  ['deratDitta','deratOperatore','deratProdotto','deratNote'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('deratData').value = today();
+  document.getElementById('deratProssimo').value = '';
+  document.getElementById('deratTipo').value = 'derattizzazione';
+  document.getElementById('deratStato').value = 'completato';
+  document.getElementById('deratEsito').value = 'positivo';
+  document.querySelectorAll('#deratAreeSel input').forEach(c => c.checked = false);
+}
+
+function renderDeratProssimiAlert() {
+  const el = document.getElementById('deratProssimiAlert');
+  if(!el) return;
+  const oggi = today();
+  const prossimi = (store.derattizzazione.interventi||[]).filter(i => i.prossimo && i.prossimo >= oggi);
+  if(!prossimi.length) { el.innerHTML = ''; return; }
+  const primo = prossimi.sort((a,b) => a.prossimo.localeCompare(b.prossimo))[0];
+  const diff = Math.round((new Date(primo.prossimo) - new Date(oggi)) / (1000*60*60*24));
+  const urgente = diff <= 7;
+  el.innerHTML = `<div class="info-box" style="${urgente ? 'border-color:var(--red);background:rgba(231,76,60,0.06);' : ''}">
+    ${urgente ? '⚠️' : '📅'} <strong>Prossimo intervento: ${formatDate(primo.prossimo)}</strong>
+    ${urgente ? ' — <strong style="color:var(--red);">Tra '+diff+' giorni!</strong>' : ' (tra '+diff+' giorni)'}
+    ${primo.tipo ? ' · ' + (DERAT_TIPO_LABEL[primo.tipo]||primo.tipo) : ''}
+  </div>`;
+}
+
+function renderDeratTimeline() {
+  const el = document.getElementById('deratTimeline');
+  if(!el) return;
+  const list = store.derattizzazione.interventi || [];
+  if(!list.length) {
+    el.innerHTML = '<div style="color:var(--gray);font-size:0.85rem;padding:1rem 0;">Nessun intervento registrato.</div>';
+    return;
+  }
+  el.innerHTML = list.map((iv, i) => {
+    const statoClass = iv.stato === 'pianificato' ? 'planned' : iv.stato === 'urgente' ? 'expired' : '';
+    const esitoColor = iv.esito === 'positivo' ? 'var(--green)' : iv.esito === 'critico' ? 'var(--red)' : '#f39c12';
+    return `<div class="derat-event ${statoClass}">
+      <div class="derat-event-header">
+        <div>
+          <div class="derat-event-title">${DERAT_TIPO_LABEL[iv.tipo]||iv.tipo}</div>
+          <div style="font-size:0.78rem;color:var(--gray);margin-top:0.15rem;">📅 ${formatDate(iv.data)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          <span class="doc-badge" style="background:rgba(255,255,255,0.06);color:var(--light);">${DERAT_STATO_LABEL[iv.stato]||iv.stato}</span>
+          ${iv.esito && iv.esito !== 'na' ? `<span class="doc-badge" style="color:${esitoColor};background:rgba(255,255,255,0.04);">${DERAT_ESITO_LABEL[iv.esito]||iv.esito}</span>` : ''}
+          <button style="background:none;border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:5px;cursor:pointer;padding:0.2rem 0.6rem;font-size:0.75rem;" onclick="eliminaIntervento(${iv.id})">×</button>
+        </div>
+      </div>
+      <div class="derat-event-body">
+        ${iv.ditta ? `<div class="derat-field"><strong>Ditta</strong>${iv.ditta}</div>` : ''}
+        ${iv.operatore ? `<div class="derat-field"><strong>Tecnico</strong>${iv.operatore}</div>` : ''}
+        ${iv.prodotto ? `<div class="derat-field"><strong>Prodotto</strong>${iv.prodotto}</div>` : ''}
+        ${iv.aree?.length ? `<div class="derat-field"><strong>Aree</strong>${iv.aree.join(', ')}</div>` : ''}
+        ${iv.prossimo ? `<div class="derat-field"><strong>Prossimo</strong>${formatDate(iv.prossimo)}</div>` : ''}
+        ${iv.note ? `<div class="derat-field" style="grid-column:1/-1;"><strong>Note</strong>${iv.note}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function eliminaIntervento(id) {
+  if(!confirm('Eliminare questo intervento?')) return;
+  store.derattizzazione.interventi = store.derattizzazione.interventi.filter(i => i.id !== id);
+  save();
+  renderDeratTimeline();
+  renderDeratStorico();
+  renderDeratProssimiAlert();
+}
+
+function aggiungiArea() {
+  const nome  = document.getElementById('areaNome').value.trim();
+  const tipo  = document.getElementById('areaTipo').value;
+  const n     = document.getElementById('areaN').value;
+  const note  = document.getElementById('areaNote').value.trim();
+  if(!nome) { showToast('⚠️ Inserisci il nome dell\'area'); return; }
+  store.derattizzazione.areeMonitorate.push({nome, tipo, n: n||'', note});
+  save();
+  document.getElementById('areaNome').value = '';
+  document.getElementById('areaN').value = '';
+  document.getElementById('areaNote').value = '';
+  renderAreeList();
+  renderDeratAreeSel();
+  showToast('✅ Area aggiunta!');
+}
+
+function renderAreeList() {
+  const el = document.getElementById('areeList');
+  if(!el) return;
+  const aree = store.derattizzazione.areeMonitorate || [];
+  const tipoIcon = {produzione:'🍳',stoccaggio:'📦',servizi:'🚿',esterno:'🌿',uffici:'💼',altro:'📋'};
+  if(!aree.length) {
+    el.innerHTML = '<p style="color:var(--gray);font-size:0.85rem;">Nessuna area definita.</p>';
+    return;
+  }
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.8rem;">` +
+    aree.map((a, i) => `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:9px;padding:0.8rem 1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
+          <div style="font-weight:600;font-size:0.9rem;">${tipoIcon[a.tipo]||'📋'} ${a.nome}</div>
+          <button style="background:none;border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:5px;cursor:pointer;padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="delArea(${i})">×</button>
+        </div>
+        ${a.n ? `<div style="font-size:0.75rem;color:var(--gray);">🪤 ${a.n} esche/trappole</div>` : ''}
+        ${a.note ? `<div style="font-size:0.75rem;color:var(--gray);">${a.note}</div>` : ''}
+      </div>
+    `).join('') + '</div>';
+}
+
+function delArea(i) {
+  if(!confirm('Eliminare questa area?')) return;
+  store.derattizzazione.areeMonitorate.splice(i, 1);
+  save();
+  renderAreeList();
+  renderDeratAreeSel();
+}
+
+function renderDeratStorico() {
+  const tbody = document.getElementById('deratStoricoBody');
+  if(!tbody) return;
+  const list = store.derattizzazione.interventi || [];
+  if(!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;">Nessun intervento</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(iv => `<tr>
+    <td>${formatDate(iv.data)}</td>
+    <td>${DERAT_TIPO_LABEL[iv.tipo]||iv.tipo}</td>
+    <td>${iv.ditta||'—'}</td>
+    <td>${iv.prodotto||'—'}</td>
+    <td style="font-size:0.78rem;">${iv.aree?.join(', ')||'—'}</td>
+    <td><span class="${iv.esito==='positivo'?'badge-ok':'badge-warn'}">${DERAT_ESITO_LABEL[iv.esito]||'—'}</span></td>
+    <td>${iv.prossimo ? formatDate(iv.prossimo) : '—'}</td>
+    <td><span class="${iv.stato==='completato'?'badge-ok':'badge-warn'}">${DERAT_STATO_LABEL[iv.stato]||iv.stato}</span></td>
+  </tr>`).join('');
+}
+
+function switchDeratTab(tab, btn) {
+  document.querySelectorAll('#page-derattizzazione .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['piano','aree','storico'].forEach(t => {
+    const el = document.getElementById('deratTab-'+t);
+    if(el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  if(tab === 'aree')    renderAreeList();
+  if(tab === 'storico') renderDeratStorico();
+}
+
+// ===== BARCODE SCANNER =====
+var scanProduct = null;
+var scannerLiveStream = null;
+var scannerDecoding = false;
+var scannerRafId = null;
+
+function aprireScannerModal() {
+  document.getElementById('scannerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  scannerDecoding = false;
+  // Try to start live camera in background (desktop/Android)
+  avviaLiveScanner();
+}
+
+function chiudiScannerModal() {
+  document.getElementById('scannerModal').classList.remove('open');
+  document.body.style.overflow = '';
+  fermaLiveScanner();
+}
+
+function avviaLiveScanner() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  var v = document.getElementById('scannerModalVideo');
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .catch(function() { return navigator.mediaDevices.getUserMedia({ video: true }); })
+    .then(function(stream) {
+      scannerLiveStream = stream;
+      v.srcObject = stream;
+      v.play().catch(function(){});
+      // Start live decode loop
+      if (window.ZXing) {
+        avviaDecodeLoop(v);
+      } else {
+        loadScanScript('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', function() {
+          avviaDecodeLoop(v);
+        });
+      }
+    })
+    .catch(function() {
+      // Camera not available — that's OK, user can use the shutter button (file input)
+    });
+}
+
+function buildZXingReader() {
+  var hints = new Map();
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.UPC_A,  ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39
+  ]);
+  return new ZXing.MultiFormatReader(hints);
+}
+
+// Try to decode at multiple scales — key for focus issues
+function tryDecodeCanvas(srcCanvas, reader) {
+  var scales = [1, 0.75, 0.5, 1.5, 0.35];
+  for (var i = 0; i < scales.length; i++) {
+    var s = scales[i];
+    var w = Math.round(srcCanvas.width  * s);
+    var h = Math.round(srcCanvas.height * s);
+    if (w < 100 || h < 50) continue;
+    var c2 = document.createElement('canvas');
+    c2.width = w; c2.height = h;
+    var cx = c2.getContext('2d');
+    // Increase contrast before decode — helps with blur
+    cx.filter = 'contrast(1.6) grayscale(1)';
+    cx.drawImage(srcCanvas, 0, 0, w, h);
+    cx.filter = 'none';
+    try {
+      var d = cx.getImageData(0, 0, w, h);
+      var lum = new ZXing.RGBLuminanceSource(d.data, w, h);
+      var bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+      var res = reader.decode(bmp);
+      if (res) return res.getText ? res.getText() : String(res);
+    } catch(e) {}
+    // Also try without filter (original)
+    if (s === 1) {
+      try {
+        var d2 = srcCanvas.getContext('2d').getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+        var lum2 = new ZXing.RGBLuminanceSource(d2.data, srcCanvas.width, srcCanvas.height);
+        var bmp2 = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum2));
+        var res2 = reader.decode(bmp2);
+        if (res2) return res2.getText ? res2.getText() : String(res2);
+      } catch(e) {}
+    }
+  }
+  return null;
+}
+
+function avviaDecodeLoop(video) {
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  var reader;
+  try { reader = buildZXingReader(); } catch(e) { return; }
+
+  function tick() {
+    if (scannerDecoding || !document.getElementById('scannerModal').classList.contains('open')) return;
+    if (video.readyState >= 2 && video.videoWidth > 0) {
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      var code = tryDecodeCanvas(canvas, reader);
+      if (code && /^[0-9]{4,14}$/.test(code)) {
+        scannerDecoding = true;
+        chiudiScannerModal();
+        cercaBarcodeScan(code);
+        return;
+      }
+    }
+    scannerRafId = setTimeout(tick, 150);
+  }
+  tick();
+}
+
+function fermaLiveScanner() {
+  clearTimeout(scannerRafId);
+  if (scannerLiveStream) {
+    scannerLiveStream.getTracks().forEach(function(t){ t.stop(); });
+    scannerLiveStream = null;
+  }
+  var v = document.getElementById('scannerModalVideo');
+  if (v) { try { v.pause(); v.srcObject = null; } catch(e){} }
+  scannerDecoding = false;
+}
+
+// Shutter button: file input photo
+function onScanFileSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  input.value = '';
+  chiudiScannerModal();
+  document.getElementById('scanLoading').classList.add('visible');
+  document.getElementById('scanResult').classList.remove('visible');
+  document.getElementById('scanError').classList.remove('visible');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() { decodeFromImage(img); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function decodeFromImage(img) {
+  if (!window.ZXing) {
+    loadScanScript('https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js', function() { decodeFromImage(img); });
+    return;
+  }
+  try {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    var reader = buildZXingReader();
+    var code = tryDecodeCanvas(canvas, reader);
+    if (code) {
+      cercaBarcodeScan(code);
+    } else {
+      scanShowError('Codice non rilevato. Tieni il telefono più fermo, assicurati che il barcode sia ben illuminato e riprova.');
+    }
+  } catch(e) {
+    scanShowError('Errore decodifica. Riprova tenendo il barcode più vicino e in buona luce.');
+  }
+}
+
+function loadScanScript(src, cb) {
+  var s = document.createElement('script');
+  s.src = src; s.onload = cb;
+  s.onerror = function() { scanShowError('Errore caricamento motore. Verifica connessione.'); };
+  document.head.appendChild(s);
+}
+
+async function cercaBarcodeScan(code) {
+  if (!code || code.length < 4) { scanShowError('Codice non valido.'); return; }
+  document.getElementById('scanLoading').classList.add('visible');
+  document.getElementById('scanResult').classList.remove('visible');
+  document.getElementById('scanError').classList.remove('visible');
+  try {
+    var res = await fetch('https://world.openfoodfacts.org/api/v0/product/' + code + '.json');
+    var data = await res.json();
+    document.getElementById('scanLoading').classList.remove('visible');
+    if (data.status === 1 && data.product) {
+      scanShowProduct(code, data.product);
+    } else {
+      scanShowError('Prodotto ' + code + ' non trovato nel database Open Food Facts.');
+    }
+  } catch(e) {
+    document.getElementById('scanLoading').classList.remove('visible');
+    scanShowError('Errore di rete. Controlla la connessione.');
+  }
+}
+
+function scanShowProduct(code, p) {
+  scanProduct = { code: code, product: p };
+  var imgEl = document.getElementById('scanResultImg');
+  var imgSrc = p.image_url || p.image_front_url;
+  if (imgSrc) {
+    var imgTag=document.createElement('img');imgTag.src=imgSrc;imgTag.className='scan-result-img';imgTag.alt='';imgTag.onerror=function(){this.style.display='none';};imgEl.innerHTML='';imgEl.appendChild(imgTag);
+  } else {
+    imgEl.innerHTML = '<div class="scan-result-placeholder">📦</div>';
+  }
+  document.getElementById('scanResultBrand').textContent = p.brands || '';
+  document.getElementById('scanResultName').textContent  = p.product_name_it || p.product_name || 'Nome non disponibile';
+  document.getElementById('scanResultCode').textContent  = '▦ ' + code;
+  var campi = [];
+  if (p.quantity)            campi.push({ k:'Quantità',    v:p.quantity });
+  if (p.categories_tags && p.categories_tags[0])
+    campi.push({ k:'Categoria', v:p.categories_tags[0].replace(/^[a-z]{2}:/,'').replace(/-/g,' ') });
+  if (p.nutriscore_grade)    campi.push({ k:'Nutri-Score', v:'🍎 '+p.nutriscore_grade.toUpperCase() });
+  if (p.ecoscore_grade)      campi.push({ k:'Eco-Score',   v:'🌱 '+p.ecoscore_grade.toUpperCase() });
+  if (p.allergens)           campi.push({ k:'Allergeni',   v:p.allergens });
+  var nut = p.nutriments;
+  if (nut) {
+    if (nut['energy-kcal_100g']!=null) campi.push({ k:'Energia/100g', v:Math.round(nut['energy-kcal_100g'])+' kcal' });
+    if (nut['proteins_100g']!=null)    campi.push({ k:'Proteine',     v:nut['proteins_100g']+' g' });
+    if (nut['carbohydrates_100g']!=null) campi.push({ k:'Carbo.',     v:nut['carbohydrates_100g']+' g' });
+    if (nut['fat_100g']!=null)         campi.push({ k:'Grassi',       v:nut['fat_100g']+' g' });
+  }
+  document.getElementById('scanResultGrid').innerHTML = campi.map(function(f){
+    return '<div class="scan-result-field"><strong>'+f.k+'</strong><span>'+(f.v||'—')+'</span></div>';
+  }).join('');
+  document.getElementById('scanResult').classList.add('visible');
+  document.getElementById('scanResult').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function scanShowError(msg) {
+  document.getElementById('scanLoading').classList.remove('visible');
+  document.getElementById('scanError').classList.add('visible');
+  document.getElementById('scanErrorText').textContent = msg;
+}
+
+function scanReset() {
+  document.getElementById('scanResult').classList.remove('visible');
+  document.getElementById('scanError').classList.remove('visible');
+  document.getElementById('scanLoading').classList.remove('visible');
+  scanProduct = null;
+}
+
+function scanImportaInRint() {
+  if (!scanProduct) return;
+  var p = scanProduct.product;
+  var nome  = p.product_name_it || p.product_name || 'Prodotto scansionato';
+  var marca = p.brands || '';
+  showPage('rintracciabilita');
+  setTimeout(function() {
+    apriFormReg();
+    setTimeout(function() {
+      var ddt  = document.getElementById('rDDT');
+      var note = document.getElementById('rNote');
+      if (ddt)  ddt.value  = scanProduct.code;
+      if (note) note.value = (marca ? marca+' — ' : '') + nome;
+      showToast('📦 Dati importati! Completa la registrazione.');
+    }, 300);
+  }, 200);
+}
+// ===== END BARCODE SCANNER =====
+
+// ===== GIORNI DI CHIUSURA =====
+
+function isGiornoChiusura(ds) {
+  // ds = "YYYY-MM-DD"
+  if(!ds) return false;
+  // Check date specifiche
+  if((store.giorniChiusura||[]).some(c => c.data === ds)) return true;
+  // Check giorni fissi settimana
+  if((store.chiusuraSettimanale||[]).length) {
+    const dow = new Date(ds + 'T00:00:00').getDay(); // 0=Dom
+    if(store.chiusuraSettimanale.includes(dow)) return true;
+  }
+  return false;
+}
+
+function getMotivoChiusura(ds) {
+  const spec = (store.giorniChiusura||[]).find(c => c.data === ds);
+  if(spec && spec.motivo) return spec.motivo;
+  const dow = new Date(ds + 'T00:00:00').getDay();
+  const nomi = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  if((store.chiusuraSettimanale||[]).includes(dow)) return 'Chiusura ' + nomi[dow];
+  return 'Chiuso';
+}
+
+const DOW_NOMI = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+
+function initChiusura() {
+  renderChiusuraSettimanaleGrid();
+  renderChiusuraDateList();
+  renderChiusuraMeseRiepilogo();
+  // Pre-fill today in date input
+  const inp = document.getElementById('chiusuraDataInput');
+  if(inp && !inp.value) inp.value = today();
+}
+
+function renderChiusuraSettimanaleGrid() {
+  const cont = document.getElementById('chiusuraSettimanaleGrid');
+  if(!cont) return;
+  const sel = store.chiusuraSettimanale || [];
+  cont.innerHTML = DOW_NOMI.map((d, i) => `
+    <div class="dow-day-btn ${sel.includes(i) ? 'selected' : ''}"
+      onclick="toggleDow(${i})" id="dowbtn-${i}">
+      ${d}
+      <span class="dow-num">${i === 0 ? 'Dom' : i === 6 ? 'Sab' : ''}</span>
+    </div>
+  `).join('');
+}
+
+function toggleDow(dow) {
+  if(!store.chiusuraSettimanale) store.chiusuraSettimanale = [];
+  const idx = store.chiusuraSettimanale.indexOf(dow);
+  if(idx === -1) store.chiusuraSettimanale.push(dow);
+  else store.chiusuraSettimanale.splice(idx, 1);
+  renderChiusuraSettimanaleGrid();
+}
+
+function salvaChiusuraSettimanale() {
+  save();
+  renderChiusuraMeseRiepilogo();
+  showToast('💾 Giorni di chiusura salvati!');
+}
+
+function aggiungiChiusura() {
+  const data = document.getElementById('chiusuraDataInput').value;
+  const motivo = document.getElementById('chiusuraMotivoInput').value.trim();
+  if(!data) { showToast('⚠️ Seleziona una data'); return; }
+  if(!store.giorniChiusura) store.giorniChiusura = [];
+  if(store.giorniChiusura.some(c => c.data === data)) { showToast('⚠️ Data già presente'); return; }
+  store.giorniChiusura.push({data, motivo});
+  store.giorniChiusura.sort((a,b) => a.data.localeCompare(b.data));
+  save();
+  document.getElementById('chiusuraMotivoInput').value = '';
+  renderChiusuraDateList();
+  renderChiusuraMeseRiepilogo();
+  showToast('✅ Data di chiusura aggiunta!');
+}
+
+function rimuoviChiusura(idx) {
+  store.giorniChiusura.splice(idx, 1);
+  save();
+  renderChiusuraDateList();
+  renderChiusuraMeseRiepilogo();
+}
+
+function renderChiusuraDateList() {
+  const el = document.getElementById('chiusuraDateList');
+  if(!el) return;
+  const list = store.giorniChiusura || [];
+  if(!list.length) {
+    el.innerHTML = '<p style="color:var(--gray);font-size:0.82rem;">Nessuna data specifica aggiunta.</p>';
+    return;
+  }
+  el.innerHTML = list.map((c, i) => `
+    <div class="chiusura-pill">
+      <div>
+        <div>${formatDate(c.data)} — <span style="font-family:'Barlow Condensed',sans-serif;color:var(--gray);">${DOW_NOMI[new Date(c.data+'T00:00:00').getDay()]}</span></div>
+        ${c.motivo ? `<div class="cp-motivo">🔒 ${c.motivo}</div>` : ''}
+      </div>
+      <button class="cp-del" onclick="rimuoviChiusura(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function renderChiusuraMeseRiepilogo() {
+  const el = document.getElementById('chiusuraMeseRiepilogo');
+  if(!el) return;
+  const d = new Date();
+  const anno = d.getFullYear();
+  const mi = d.getMonth();
+  const giorniMese = new Date(anno, mi+1, 0).getDate();
+  let html = '';
+  let count = 0;
+  for(let g=1; g<=giorniMese; g++) {
+    const ds = `${anno}-${String(mi+1).padStart(2,'0')}-${String(g).padStart(2,'0')}`;
+    if(isGiornoChiusura(ds)) {
+      count++;
+      const motivo = getMotivoChiusura(ds);
+      const dow = DOW_NOMI[new Date(ds+'T00:00:00').getDay()];
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;">
+        <span><strong style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;">${g}</strong> <span style="color:var(--gray);">${dow}</span></span>
+        <span class="closed-badge">🔒 ${motivo}</span>
+      </div>`;
+    }
+  }
+  if(!count) html = '<p style="color:var(--gray);font-size:0.82rem;">Nessun giorno di chiusura nel mese corrente.</p>';
+  else html = `<div style="margin-bottom:0.8rem;font-size:0.82rem;color:var(--gray);">${count} giorni di chiusura</div>` + html;
+  el.innerHTML = html;
+}
+// ===== INIT =====
+updateDate_noop = null;
+updateDateDisplay();
+checkAuth();
+if(isLoggedIn()) initHero();
+</script>
+
+
+<!-- SCANNER MODAL -->
+<div class="scanner-modal" id="scannerModal">
+  <video id="scannerModalVideo" autoplay playsinline muted></video>
+  <div class="scanner-modal-ui">
+    <div class="scanner-modal-top">
+      <div class="scanner-modal-title">▦ SCANSIONA BARCODE</div>
+      <button class="scanner-modal-close" onclick="chiudiScannerModal()">✕ CHIUDI</button>
+    </div>
+    <div class="scanner-viewfinder">
+      <div class="scanner-vf-frame">
+        <div class="scanner-vf-inner"></div>
+        <div class="scanner-vf-laser"></div>
+        <div class="scanner-vf-hint">CENTRA IL BARCODE NEL RIQUADRO</div>
+      </div>
+    </div>
+    <div class="scanner-modal-bottom">
+      <label class="scanner-shutter" for="scanFileInput" title="Scatta foto">
+        <div class="scanner-shutter-inner"></div>
+      </label>
+      <input type="file" id="scanFileInput" accept="image/*" capture="environment" onchange="onScanFileSelected(this)">
+      <div class="scanner-manual-row">
+        <input class="scanner-manual-input" type="text" id="scanManualInput"
+          placeholder="Inserisci codice manualmente..."
+          inputmode="numeric" maxlength="14"
+          onkeydown="if(event.key==='Enter'){chiudiScannerModal();cercaBarcodeScan(this.value.trim())}">
+        <button class="scanner-manual-go" onclick="chiudiScannerModal();cercaBarcodeScan(document.getElementById('scanManualInput').value.trim())">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
